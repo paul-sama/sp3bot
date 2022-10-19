@@ -71,7 +71,8 @@ async def unknown_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    url, auth_code_verifier = log_in(A_VERSION, get_url=True)
+    logger.info(f'login: {update.effective_user.username}')
+    url, auth_code_verifier = log_in(A_VERSION)
     context.user_data['auth_code_verifier'] = auth_code_verifier
     logger.info(f'get login url: {url}')
     logger.info(f'auth_code_verifier: {auth_code_verifier}')
@@ -84,21 +85,26 @@ Navigate to this URL in your browser:
 {url}
 Log in, right click the "Select this account" button, copy the link address, and /set_token the_link_address
 """
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+        logger.info(msg)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, disable_web_page_preview=True)
 
 
 async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     token = text[10:]
-    logger.info(f'set_token: {token}')
+    logger.info(f'{update.effective_user.username} set_token: {token}')
     if not token:
         await context.bot.send_message(chat_id=update.effective_chat.id,
-                                       text="Please enter the link address after /set_token")
+                                       text="Please past the link address after /set_token")
         return
 
     auth_code_verifier = context.user_data['auth_code_verifier']
     logger.info(f'auth_code_verifier: {auth_code_verifier}')
     session_token = login_2(use_account_url=token, auth_code_verifier=auth_code_verifier)
+    if session_token == 'skip':
+        msg = 'set token failed, please try again. /login'
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+        return
     logger.info(f'session_token: {session_token}')
     user = get_or_set_user(user_id=update.effective_user.id, session_token=session_token)
     await context.bot.send_message(chat_id=update.effective_chat.id, text='set_token success')

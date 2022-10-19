@@ -12,7 +12,7 @@ from iksm import *
 A_VERSION = '2.2.2'
 
 
-def log_in(ver, get_url=False, use_account_url='skip'):
+def log_in(ver):
 	'''Logs in to a Nintendo Account and returns a session_token.'''
 
 	global S3S_VERSION
@@ -56,24 +56,7 @@ def log_in(ver, get_url=False, use_account_url='skip'):
 	print("\nNavigate to this URL in your browser:")
 	print(post_login)
 	print("Log in, right click the \"Select this account\" button, copy the link address, and paste it below:")
-	if get_url:
-		return post_login, auth_code_verifier
-	while True:
-		try:
-			# use_account_url = input("")
-			if use_account_url == "skip":
-				return "skip"
-			session_token_code = re.search('de=(.*)&', use_account_url)
-			return get_session_token(session_token_code.group(1), auth_code_verifier)
-		except KeyboardInterrupt:
-			print("\nBye!")
-			return "skip"
-		except AttributeError:
-			print("Malformed URL. Please try again, or press Ctrl+C to exit.")
-			print("URL:", end=' ')
-		except KeyError: # session_token not found
-			print("\nThe URL has expired. Please log out and back into your Nintendo Account and try again.")
-			return "skip"
+	return post_login, auth_code_verifier
 
 
 def login_2(use_account_url, auth_code_verifier):
@@ -89,6 +72,10 @@ def login_2(use_account_url, auth_code_verifier):
 		except AttributeError:
 			print("Malformed URL. Please try again, or press Ctrl+C to exit.")
 			print("URL:", end=' ')
+			return "skip"
 		except KeyError: # session_token not found
 			print("\nThe URL has expired. Please log out and back into your Nintendo Account and try again.")
 			return "skip"
+		except Exception as ex:
+			print(f'ex: {ex}')
+			return 'skip'
