@@ -113,15 +113,7 @@ def prefetch_checks(printout=False):
 	if test.status_code != 200:
 		if printout:
 			print("\n")
-		# gen_new_tokens("expiry")
-		while True:
-			try:
-				if gen_new_tokens("expiry"):
-					break
-			except Exception as e:
-				print(f"(!) catch {e}")
-			print('(!) failed to generate new tokens, retrying in 5 seconds...')
-			time.sleep(5)
+		gen_new_tokens("expiry")
 	else:
 		if printout:
 			print("Validating your tokens... done.\n")
@@ -135,7 +127,7 @@ def gen_new_tokens(reason, force=False):
 		if reason == "blank":
 			print("Blank token(s).")
 		elif reason == "expiry":
-			print(f"The stored tokens have expired. {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+			print("The stored tokens have expired.")
 		else:
 			print("Cannot access SplatNet 3 without having played online.")
 			sys.exit(0)
@@ -167,14 +159,12 @@ def gen_new_tokens(reason, force=False):
 	CONFIG_DATA["gtoken"] = new_gtoken # valid for 2 hours
 	CONFIG_DATA["bullettoken"] = new_bullettoken # valid for 2 hours
 	CONFIG_DATA["acc_loc"] = acc_lang + "|" + acc_country
-	CONFIG_DATA["acc_loc"] = 'zh-CN|JP'
 	write_config(CONFIG_DATA)
 
 	if manual_entry:
 		print("Wrote tokens to config.txt.\n")
 	else:
 		print(f"Wrote tokens for {acc_name} to config.txt.\n")
-	return True
 
 
 def fetch_json(which, separate=False, exportall=False, specific=False, numbers_only=False, printout=False, skipprefetch=False):

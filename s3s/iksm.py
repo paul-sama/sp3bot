@@ -170,9 +170,7 @@ def get_gtoken(f_gen_url, session_token, ver):
 		print("Not a valid authorization request. Please delete config.txt and try again.")
 		print("Error from Nintendo (in api/token step):")
 		print(json.dumps(id_response, indent=2))
-		print('not sys.exit(1)')
-		return
-		# sys.exit(1)
+		sys.exit(1)
 
 	url = "https://api.accounts.nintendo.com/2.0.0/users/me"
 	r = requests.get(url, headers=app_head)
@@ -198,16 +196,12 @@ def get_gtoken(f_gen_url, session_token, ver):
 			'timestamp':  timestamp
 		}
 	except SystemExit:
-		# sys.exit(1)
-		print('not sys.exit(1)')
-		return
+		sys.exit(1)
 	except:
 		print("Error(s) from Nintendo:")
 		print(json.dumps(id_response, indent=2))
 		print(json.dumps(user_info, indent=2))
-		print('not sys.exit(1)')
-		return
-		# sys.exit(1)
+		sys.exit(1)
 	body["parameter"] = parameter
 
 	app_head = {
@@ -241,10 +235,8 @@ def get_gtoken(f_gen_url, session_token, ver):
 		except:
 			print("Error from Nintendo (in Account/Login step):")
 			print(json.dumps(splatoon_token, indent=2))
-			print('not sys.exit(1)')
-			return
-			# print("Re-running the script usually fixes this.")
-			# sys.exit(1)
+			print("Re-running the script usually fixes this.")
+			sys.exit(1)
 
 		f, uuid, timestamp = call_imink_api(id_token, 2, f_gen_url)
 
@@ -289,9 +281,7 @@ def get_gtoken(f_gen_url, session_token, ver):
 		except:
 			print("Error from Nintendo (in Game/GetWebServiceToken step):")
 			print(json.dumps(web_service_resp, indent=2))
-			print('not sys.exit(1)')
-			return
-			# sys.exit(1)
+			sys.exit(1)
 
 	return web_service_token, user_nickname, user_lang, user_country
 
