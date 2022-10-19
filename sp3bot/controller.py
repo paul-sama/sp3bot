@@ -1,10 +1,11 @@
 import json
+from datetime import datetime as dt
 from telegram import Update
 from loguru import logger
 from telegram.ext import ContextTypes
 from .model import show_schedule, show_coop, show_mall
 from .botdecorator import check_user_handler, check_session_handler
-from .db import get_or_set_user
+from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION
 from .msg import show_challenge, INTERVAL
@@ -31,6 +32,7 @@ async def help_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /last - show the last battle
 /start_push - start push
 /stop_push - stop push
+/set_api_key - set stat.ink api_key
 /show_db_info - show db info
 /clear_db_info - clear db info
     """)
@@ -100,6 +102,19 @@ async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f'session_token: {session_token}')
     user = get_or_set_user(user_id=update.effective_user.id, session_token=session_token)
     await context.bot.send_message(chat_id=update.effective_chat.id, text='set_token success')
+
+
+async def set_api_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        api_key = context.args[0]
+    except IndexError:
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                       text="Please enter the api_key after /set_api_key")
+        return
+    logger.info(f'set_api_key: {api_key}')
+
+    get_or_set_user(user_id=update.effective_user.id, api_key=api_key)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text='set_api_key success')
 
 
 @check_session_handler
@@ -201,6 +216,7 @@ bullettoken: {user.bullettoken}
 session_token: {user.session_token}
 push: {user.push}
 push_cnt: {user.push_cnt}
+api_key: {user.api_key}
 user_info: {user.user_info}
 ```
     """
@@ -216,7 +232,22 @@ async def clear_db_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         session_token=None,
         push=False,
         push_cnt=0,
+        api_key=None,
         user_info=None,
     )
     msg = "All data cleared!"
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+
+
+async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
+    # TODO
+    now = dt.now()
+    if not (now.hour in (22, 0) and now.minute == 5):
+        return
+    users = get_all_user()
+    for u in users:
+        if not u.api_key:
+            continue
+        chat_id = u.id
+        msg = 'push battles to stat.ink'
+        # await context.bot.send_message(chat_id=chat_id, text=msg)

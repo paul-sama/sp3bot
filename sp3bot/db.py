@@ -71,3 +71,9 @@ def get_or_set_user(**kwargs):
     session.commit()
     # session.close()
     return user
+
+
+def get_all_user():
+    session = DBSession()
+    users = session.query(UserTable).all()
+    return users
