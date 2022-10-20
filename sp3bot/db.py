@@ -49,13 +49,14 @@ def get_or_set_user(**kwargs):
 
     user = session.query(UserTable).filter(UserTable.id == user_id).first()
     if user:
-        logger.info(f'get user from db: {user.id}, {user.username}, {kwargs}')
+        logger.debug(f'get user from db: {user.id}, {user.username}, {kwargs}')
         for k, v in kwargs.items():
-            if k != 'user_id':
-                if 'name' not in k:
-                    logger.info(f'update user {k}={v}')
-                setattr(user, k, v)
-                session.commit()
+            if not getattr(user, k, None) or k == 'user_id':
+                continue
+            if 'name' not in k:
+                logger.debug(f'update user {k}={v}')
+            setattr(user, k, v)
+            session.commit()
         # session.close()
         return user
 

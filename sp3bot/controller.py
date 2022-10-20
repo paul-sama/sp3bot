@@ -174,15 +174,20 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
         # logger.info(f'last_battle_id: {last_battle_id}')
         if last_battle_id == battle_id:
             push_cnt = user.push_cnt + 1
+            if push_cnt % 60 == 0:
+                # show log every 10 minutes
+                logger.info(f'push_latest_battle: {user.username}, {chat_id}')
+
             get_or_set_user(user_id=chat_id, push_cnt=push_cnt)
             if push_cnt * INTERVAL / 60 > 30:
                 context.job.schedule_removal()
-                msg = f'已经推送了{push_cnt}次, 无游戏记录，不再推送 /start_push'
+                msg = f'已经推送了{push_cnt}次 30 mins, 无游戏记录，不再推送 /start_push'
                 logger.info(f'{user.username}, {msg}')
                 await context.bot.send_message(chat_id=chat_id, text=msg)
                 return
             return
 
+    logger.info(f'new battle!')
     user_info = json.dumps({'battle_id': battle_id})
     get_or_set_user(user_id=chat_id, user_info=user_info, push_cnt=0)
     mode = detail['vsMode']['mode']

@@ -58,7 +58,7 @@ class Splatoon:
         t = time.time()
         res = requests.post(utils.GRAPHQL_URL, data=data,
                             headers=self.headbutt(self.bullet_token), cookies=dict(_gtoken=self.gtoken))
-        logger.info(f'_request: {time.time() - t:.3f}s')
+        logger.debug(f'_request: {time.time() - t:.3f}s')
         if res.status_code != 200:
             logger.info('tokens have expired.')
             self.set_gtoken_and_bullettoken()
