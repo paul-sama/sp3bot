@@ -8,7 +8,7 @@ from .botdecorator import check_user_handler, check_session_handler
 from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION
-from .msg import show_challenge, INTERVAL
+from .msg import get_battle_msg, INTERVAL
 
 
 @check_user_handler
@@ -130,19 +130,13 @@ async def last(update: Update, context: ContextTypes.DEFAULT_TYPE):
     res = splt.get_recent_battles()
     history_groups = res['data']['latestBattleHistories']['historyGroups']['nodes']
     details = history_groups[0]['historyDetails']['nodes']
-    detail = details[0]
+    battle_info = details[0]
 
-    battle_id = detail["id"]
+    battle_id = battle_info["id"]
     # logger.info(f'battle_id: {battle_id}')
-    context.user_data['battle_id'] = battle_id
-    mode = detail['vsMode']['mode']
-    rule = detail['vsRule']['name']
-    j = detail['judgement']
-    text = f"{mode:>8}, {j:>4}, {rule}"
-
-    battle = splt.get_battle_detail(battle_id)
-    msg = show_challenge(battle)
-    # msg = text
+    battle_detail = splt.get_battle_detail(battle_id)
+    msg = get_battle_msg(battle_info, battle_detail)
+    # print(msg)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 
 
@@ -165,9 +159,9 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
 
     history_groups = res['data']['latestBattleHistories']['historyGroups']['nodes']
     details = history_groups[0]['historyDetails']['nodes']
-    detail = details[0]
+    battle_info = details[0]
 
-    battle_id = detail["id"]
+    battle_id = battle_info["id"]
     if user.user_info:
         user_info = json.loads(user.user_info)
         last_battle_id = user_info.get('battle_id')
@@ -190,14 +184,9 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
     logger.info(f'new battle!')
     user_info = json.dumps({'battle_id': battle_id})
     get_or_set_user(user_id=chat_id, user_info=user_info, push_cnt=0)
-    mode = detail['vsMode']['mode']
-    rule = detail['vsRule']['name']
-    j = detail['judgement']
-    text = f"{mode:>8}, {j:>4}, {rule}"
-
-    battle = splt.get_battle_detail(battle_id)
-    msg = show_challenge(battle)
-    # msg = text
+    battle_detail = splt.get_battle_detail(battle_id)
+    msg = get_battle_msg(battle_info, battle_detail)
+    # print(msg)
     await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode='Markdown')
 
 
