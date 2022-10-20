@@ -51,7 +51,7 @@ def get_or_set_user(**kwargs):
     if user:
         logger.debug(f'get user from db: {user.id}, {user.username}, {kwargs}')
         for k, v in kwargs.items():
-            if not getattr(user, k, None) or k == 'user_id':
+            if getattr(user, k, None) is None or k == 'user_id':
                 continue
             if 'name' not in k:
                 logger.debug(f'update user {k}={v}')
