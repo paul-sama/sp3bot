@@ -88,3 +88,18 @@ class Splatoon:
         data = utils.gen_graphql_body(utils.translate_rid['VsHistoryDetailQuery'], "vsResultId", battle_id)
         res = self._request(data, skip_check_token)
         return res
+
+    def get_summary(self, skip_check_token=False):
+        data = utils.gen_graphql_body('29957cf5d57b893934de857317cd46d8')
+        res = self._request(data, skip_check_token)
+        return res
+
+    def get_all_res(self, skip_check_token=True):
+        data = utils.gen_graphql_body('f8ae00773cc412a50dd41a6d9a159ddd')
+        res = self._request(data, skip_check_token)
+        return res
+
+    def get_coop_summary(self, skip_check_token=True):
+        data = utils.gen_graphql_body('817618ce39bcf5570f52a97d73301b30')
+        res = self._request(data, skip_check_token)
+        return res

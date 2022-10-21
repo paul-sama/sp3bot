@@ -1,5 +1,6 @@
 import json
 
+from datetime import datetime as dt, timedelta
 from loguru import logger
 
 INTERVAL = 10
@@ -56,4 +57,48 @@ def get_battle_msg(b_info, battle_detail):
     msg += f"\n`duration: {duration}, knockout: {knockout}`"
     msg += ('\n ' + '\n '.join(award_list) + '\n')
     # print(msg)
+    return msg
+
+
+def get_summary(data, all_data, coop):
+    player = data['data']['currentPlayer']
+    history = data['data']['playHistory']
+    start_time = history['gameStartTime']
+    s_time = dt.strptime(start_time, '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8)
+
+    all_cnt = ''
+    if all_data:
+        all_cnt = f"/{all_data['data']['playHistory']['battleNumTotal']}"
+
+    coop_msg = ''
+    if coop:
+        coop = coop['data']['coopResult']
+        card = coop['pointCard']
+        p = coop['scale']
+        name = f"{coop['regularGrade']['name']} {coop['regularGradePoint']}"
+        coop_msg = f"""
+{name}
+现有点数: {card['regularPoint']}
+打工次数: {card['playCount']}
+已收集的金鲑鱼卵: {card['goldenDeliverCount']}
+已收集的鲑鱼卵: {card['deliverCount']}
+已击倒的头目鲑鱼: {card['defeatBossCount']}
+救援次数: {card['rescueCount']}
+累计点数: {card['totalPoint']}
+鳞片: 🥉{p['bronze']} 🥈{p['silver']} 🏅️{p['gold']}
+"""
+
+    msg = f"""
+```
+{player['name']} #{player['nameId']}
+{player['byname']}
+最高技术: {history['udemaeMax']}
+总胜利数: {history['winCountTotal']}{all_cnt}
+至今为止的涂墨面积: {history['paintPointTotal']:,}p
+徽章: {len(history['badges'])}
+开始游玩时间: {s_time:%Y-%m-%d %H:%M:%S}
+
+{coop_msg}
+```
+"""
     return msg
