@@ -97,7 +97,6 @@ def get_summary(data, all_data, coop):
 至今为止的涂墨面积: {history['paintPointTotal']:,}p
 徽章: {len(history['badges'])}
 开始游玩时间: {s_time:%Y-%m-%d %H:%M:%S}
-
 {coop_msg}
 ```
 """
