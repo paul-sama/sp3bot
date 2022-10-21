@@ -35,7 +35,9 @@ async def help_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /set_api_key - set stat.ink api_key
 /show_db_info - show db info
 /clear_db_info - clear db info
-    """)
+
+source code: https://github.com/paul-sama/sp3bot
+    """, disable_web_page_preview=True)
 
 
 @check_user_handler
@@ -180,7 +182,7 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
             get_or_set_user(user_id=chat_id, push_cnt=push_cnt)
             if push_cnt * INTERVAL / 60 > 30:
                 context.job.schedule_removal()
-                msg = f'已经推送了{push_cnt}次 30 mins, 无游戏记录，不再推送 /start_push'
+                msg = f'已查询{push_cnt}次 30 mins, 无游戏记录，不再推送 /start_push'
                 logger.info(f'{user.username}, {msg}')
                 await context.bot.send_message(chat_id=chat_id, text=msg)
                 return
