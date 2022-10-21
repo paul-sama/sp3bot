@@ -162,7 +162,7 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
     # logger.info(f'push_latest_battle: {chat_id}')
     user = get_or_set_user(user_id=chat_id)
     splt = Splatoon(chat_id, user.session_token)
-    res = splt.get_recent_battles()
+    res = splt.get_recent_battles(skip_check_token=True)
 
     history_groups = res['data']['latestBattleHistories']['historyGroups']['nodes']
     details = history_groups[0]['historyDetails']['nodes']

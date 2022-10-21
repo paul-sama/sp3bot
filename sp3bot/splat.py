@@ -34,8 +34,9 @@ class Splatoon:
         new_bullettoken = iksm.get_bullet(new_gtoken, utils.get_web_view_ver(), APP_USER_AGENT, acc_lang, acc_country)
         self.gtoken = new_gtoken
         self.bullet_token = new_bullettoken
-        logger.info(f'new gtoken: {new_gtoken}')
-        logger.info(f'new bullettoken: {new_bullettoken}')
+        logger.info('tokens have been updated.')
+        logger.debug(f'new gtoken: {new_gtoken}')
+        logger.debug(f'new bullettoken: {new_bullettoken}')
         user = get_or_set_user(user_id=self.user_id, gtoken=new_gtoken, bullettoken=new_bullettoken)
         return True
 
@@ -55,7 +56,19 @@ class Splatoon:
         }
         return graphql_head
 
-    def _request(self, data):
+    def test_page(self):
+        data = utils.gen_graphql_body(utils.translate_rid["HomeQuery"])
+        t = time.time()
+        test = requests.post(utils.GRAPHQL_URL, data=data,
+                             headers=self.headbutt(self.bullet_token), cookies=dict(_gtoken=self.gtoken))
+        # logger.debug(f'_test_page: {time.time() - t:.3f}s')
+        if test.status_code != 200:
+            logger.info('tokens have expired.')
+            self.set_gtoken_and_bullettoken()
+
+    def _request(self, data, skip_check_token=False):
+        if not skip_check_token:
+            self.test_page()
         t = time.time()
         res = requests.post(utils.GRAPHQL_URL, data=data,
                             headers=self.headbutt(self.bullet_token), cookies=dict(_gtoken=self.gtoken))
@@ -63,26 +76,15 @@ class Splatoon:
         if res.status_code != 200:
             logger.info('tokens have expired.')
             self.set_gtoken_and_bullettoken()
-            self._request(data)
         else:
             return res.json()
 
-    def test_page(self):
-        data = utils.gen_graphql_body(utils.translate_rid["HomeQuery"])
-        test = requests.post(utils.GRAPHQL_URL, data=data,
-                             headers=self.headbutt(self.bullet_token), cookies=dict(_gtoken=self.gtoken))
-        if test.status_code != 200:
-            logger.info('tokens have expired.')
-            self.set_gtoken_and_bullettoken()
-        else:
-            logger.info('tokens are still valid.')
-
-    def get_recent_battles(self):
+    def get_recent_battles(self, skip_check_token=False):
         data = utils.gen_graphql_body(utils.translate_rid['LatestBattleHistoriesQuery'])
-        res = self._request(data)
+        res = self._request(data, skip_check_token)
         return res
 
-    def get_battle_detail(self, battle_id):
+    def get_battle_detail(self, battle_id, skip_check_token=True):
         data = utils.gen_graphql_body(utils.translate_rid['VsHistoryDetailQuery'], "vsResultId", battle_id)
-        res = self._request(data)
+        res = self._request(data, skip_check_token)
         return res
