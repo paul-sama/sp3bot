@@ -4,6 +4,8 @@
 
 import os
 import sys
+import subprocess
+from loguru import logger
 pth = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pth)
 sys.path.append(f'{pth}/s3s')
@@ -79,3 +81,72 @@ def login_2(use_account_url, auth_code_verifier):
 		except Exception as ex:
 			print(f'ex: {ex}')
 			return 'skip'
+
+
+def post_battle_to_stat_ink(**kwargs):
+	user_name = kwargs.get('user_name')
+	session_token = kwargs.get('session_token')
+	api_key = kwargs.get('api_key')
+	logger.bind(cron=True).debug(f'post_battle_to_stat_ink: {user_name}')
+	logger.bind(cron=True).debug(f'session_token: {session_token}')
+	logger.bind(cron=True).debug(f'api_key: {api_key}')
+
+	path_folder = f'{pth}/s3s_user'
+	if not os.path.exists(path_folder):
+		os.mkdir(path_folder)
+	os.chdir(path_folder)
+
+	# get s3s code
+	s3s_folder = f'{path_folder}/s3s_git'
+	if not os.path.exists(s3s_folder):
+		cmd = f'git clone https://github.com/frozenpandaman/s3s {s3s_folder}'
+		rtn = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE).stdout.decode('utf-8')
+		logger.bind(cron=True).debug(f'cli: {rtn}')
+	else:
+		os.chdir(s3s_folder)
+		cmd = f'git pull'
+		rtn = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE).stdout.decode('utf-8')
+		logger.bind(cron=True).debug(f'cli: {rtn}')
+
+	path_user_folder = f'{path_folder}/{user_name}'
+	if not os.path.exists(path_user_folder):
+		os.mkdir(path_user_folder)
+	os.chdir(path_user_folder)
+
+	for _f in ('s3s', 'iksm', 'utils'):
+		cmd = f"cp {s3s_folder}/{_f}.py {path_user_folder}/{_f}.py"
+		logger.bind(cron=True).debug(f'cli: {cmd}')
+		subprocess.run(cmd.split(' '), stdout=subprocess.PIPE).stdout.decode('utf-8')
+
+	CONFIG_DATA = {
+		"api_key": api_key,
+		"acc_loc": "zh-CN|JP",
+		"gtoken": "111",
+		"bullettoken": "222",
+		"session_token": session_token,
+		"f_gen": "https://api.imink.app/f"
+	}
+	config_file = open(f"{path_user_folder}/config.txt", "w")
+	config_file.seek(0)
+	config_file.write(json.dumps(CONFIG_DATA, indent=4, sort_keys=False, separators=(',', ': ')))
+	config_file.close()
+
+	cmd = 'python3 s3s.py -r'
+	logger.bind(cron=True).debug(path_user_folder)
+	logger.bind(cron=True).debug(cmd)
+	rtn = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE).stdout.decode('utf-8')
+	logger.bind(cron=True).debug(f'cli: {rtn}')
+
+	battle_cnt = 0
+	url = ''
+	for line in rtn.split('\n'):
+		line = line.strip()
+		if not line:
+			continue
+		if 'uploaded to https://stat.ink' in line:
+			battle_cnt += 1
+			url = line.split('to ')[1].split('spl3')[0]
+
+	logger.bind(cron=True).debug(f'result: {battle_cnt}, {url}')
+	if battle_cnt:
+		return battle_cnt, f'{url}spl3'

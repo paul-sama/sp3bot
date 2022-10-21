@@ -4,3 +4,4 @@ configs.py
 nohup.out
 *.log
 */config.txt
+s3s_user/*

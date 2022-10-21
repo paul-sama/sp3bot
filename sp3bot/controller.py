@@ -7,7 +7,7 @@ from .model import show_schedule, show_coop, show_mall
 from .botdecorator import check_user_handler, check_session_handler
 from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
-from .bot_iksm import log_in, login_2, A_VERSION
+from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink
 from .msg import get_battle_msg, INTERVAL
 
 
@@ -110,17 +110,22 @@ async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text='set_token success')
 
 
+@check_session_handler
 async def set_api_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         api_key = context.args[0]
+        if len(api_key) != 43:
+            raise IndexError
     except IndexError:
+        msg = 'Please copy you api_key from https://stat.ink/profile then paste after /set_api_key'
         await context.bot.send_message(chat_id=update.effective_chat.id,
-                                       text="Please enter the api_key after /set_api_key")
+                                       text=msg, disable_web_page_preview=True)
         return
     logger.info(f'set_api_key: {api_key}')
 
     get_or_set_user(user_id=update.effective_user.id, api_key=api_key)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text='set_api_key success')
+    msg = 'set_api_key success, bot will check every 3 hours and post your data to stat.ink'
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
 
 
 @check_session_handler
@@ -240,14 +245,18 @@ async def clear_db_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
-    # TODO
     now = dt.now()
-    if not (now.hour in (22, 0) and now.minute == 5):
+    # run every 3 hours
+    if not (now.hour % 3 == 0 and now.minute == 0):
         return
+    logger.bind(cron=True).debug(f"crontab_job")
     users = get_all_user()
     for u in users:
         if not u.api_key:
             continue
-        chat_id = u.id
-        msg = 'push battles to stat.ink'
-        # await context.bot.send_message(chat_id=chat_id, text=msg)
+        logger.bind(cron=True).debug(f"get user: {u.username}, have api_key: {u.api_key}")
+        res = post_battle_to_stat_ink(user_name=u.username, session_token=u.session_token, api_key=u.api_key)
+        if res:
+            chat_id = u.id
+            msg = f'push {res[0]} battles to stat.ink\n{res[1]}'
+            await context.bot.send_message(chat_id=chat_id, text=msg, disable_web_page_preview=True)
