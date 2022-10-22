@@ -110,7 +110,7 @@ def coop_row(p):
            f"{p['deliverCount']:>4} {p['rescueCount']}r {name}`"
 
 
-def get_coop_msg(data):
+def get_coop_msg(c_point, data):
     detail = data['data']['coopHistoryDetail']
     my = detail['myResult']
     wave_msg = ''
@@ -122,9 +122,17 @@ def get_coop_msg(data):
     if detail.get('bossResult'):
         w = detail['waveResults'][-1]
         r = 'GJ!' if detail['bossResult']['hasDefeatBoss'] else 'NG'
-        wave_msg += f"`EX {detail['bossResult']['boss']['name']} ({w['goldenPopCount']}) {d_w[w['waterLevel']]} {r}`\n"
+        s = ''
+        scale = detail.get('scale')
+        if scale and scale.get('bronze'):
+            s += f'🥉{scale["bronze"]}'
+        if scale and scale.get('silver'):
+            s += f' 🥈{scale["silver"]}'
+        if scale and scale.get('gold'):
+            s += f' 🏅️{scale["gold"]}'
+        wave_msg += f"`EX {detail['bossResult']['boss']['name']} ({w['goldenPopCount']}) {d_w[w['waterLevel']]} {r} {s}`\n"
     msg = f"""
-`{detail['afterGrade']['name']} {detail['afterGradePoint']} 危险度: {detail['dangerRate']:.0%}`
+`{detail['afterGrade']['name']} {detail['afterGradePoint']} 危险度: {detail['dangerRate']:.0%} +{detail['jobPoint']}({c_point}p)`
 {wave_msg}
 {coop_row(my)}
 """
