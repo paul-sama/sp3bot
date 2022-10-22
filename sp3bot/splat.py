@@ -89,6 +89,16 @@ class Splatoon:
         res = self._request(data, skip_check_token)
         return res
 
+    def get_coops(self, skip_check_token=True):
+        data = utils.gen_graphql_body(utils.translate_rid['CoopHistoryQuery'])
+        res = self._request(data, skip_check_token)
+        return res
+
+    def get_coop_detail(self, battle_id, skip_check_token=True):
+        data = utils.gen_graphql_body(utils.translate_rid['CoopHistoryDetailQuery'], "coopHistoryDetailId", battle_id)
+        res = self._request(data, skip_check_token)
+        return res
+
     def get_summary(self, skip_check_token=False):
         data = utils.gen_graphql_body('29957cf5d57b893934de857317cd46d8')
         res = self._request(data, skip_check_token)

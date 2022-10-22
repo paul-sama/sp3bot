@@ -1,3 +1,4 @@
+import base64
 import json
 from datetime import datetime as dt
 from telegram import Update
@@ -8,7 +9,7 @@ from .botdecorator import check_user_handler, check_session_handler
 from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink
-from .msg import get_battle_msg, INTERVAL, get_summary
+from .msg import get_battle_msg, INTERVAL, get_summary, get_coop_msg
 
 
 @check_user_handler
@@ -30,7 +31,7 @@ async def help_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /help - show this help message
 /login - login
 /me - show your info
-/last - show the last battle
+/last - show the last battle or coop
 /start_push - start push
 /stop_push - stop push
 /set_api_key - set stat.ink api_key
@@ -131,21 +132,40 @@ async def set_api_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
 
 
+async def get_last_battle_or_coop(user_id, for_push=False):
+    user = get_or_set_user(user_id=user_id)
+    splt = Splatoon(user_id, user.session_token)
+
+    # get last battle
+    res = splt.get_recent_battles(skip_check_token=True if for_push else False)
+    b_info = res['data']['latestBattleHistories']['historyGroups']['nodes'][0]['historyDetails']['nodes'][0]
+    battle_id = b_info['id']
+
+    # get last coop
+    res = splt.get_coops()
+    coop_id = res['data']['coopResult']['historyGroups']['nodes'][0]['historyDetails']['nodes'][0]['id']
+    battle_t = base64.b64decode(battle_id).decode('utf-8').split('_')[0].split(':')[-1]
+    coop_t = base64.b64decode(coop_id).decode('utf-8').split('_')[0].split(':')[-1]
+
+    if battle_t > coop_t:
+        if for_push:
+            return battle_id, b_info
+        battle_detail = splt.get_battle_detail(battle_id)
+        msg = get_battle_msg(b_info, battle_detail)
+        return msg
+    else:
+        if for_push:
+            return coop_id, ''
+        coo_detail = splt.get_coop_detail(coop_id)
+        msg = get_coop_msg(coo_detail)
+        return msg
+
+
 @check_session_handler
 async def last(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = get_or_set_user(user_id=update.effective_user.id)
-    splt = Splatoon(update.effective_user.id, user.session_token)
-    res = splt.get_recent_battles()
-    history_groups = res['data']['latestBattleHistories']['historyGroups']['nodes']
-    details = history_groups[0]['historyDetails']['nodes']
-    battle_info = details[0]
-
-    battle_id = battle_info["id"]
-    # logger.info(f'battle_id: {battle_id}')
-    battle_detail = splt.get_battle_detail(battle_id)
-    msg = get_battle_msg(battle_info, battle_detail)
-    # print(msg)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
+    user_id = update.effective_user.id
+    msg = await get_last_battle_or_coop(user_id)
+    await context.bot.send_message(chat_id=user_id, text=msg, parse_mode='Markdown')
 
 
 @check_session_handler
@@ -169,18 +189,10 @@ async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
-    # update = context.update
     chat_id = context.job.chat_id
-    # logger.info(f'push_latest_battle: {chat_id}')
+    battle_id, b_info = await get_last_battle_or_coop(chat_id, for_push=True)
+
     user = get_or_set_user(user_id=chat_id)
-    splt = Splatoon(chat_id, user.session_token)
-    res = splt.get_recent_battles(skip_check_token=True)
-
-    history_groups = res['data']['latestBattleHistories']['historyGroups']['nodes']
-    details = history_groups[0]['historyDetails']['nodes']
-    battle_info = details[0]
-
-    battle_id = battle_info["id"]
     if user.user_info:
         user_info = json.loads(user.user_info)
         last_battle_id = user_info.get('battle_id')
@@ -200,12 +212,16 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
                 return
             return
 
-    logger.info(f'new battle!')
+    logger.info(f'{user.username} get new battle!')
     user_info = json.dumps({'battle_id': battle_id})
     get_or_set_user(user_id=chat_id, user_info=user_info, push_cnt=0)
-    battle_detail = splt.get_battle_detail(battle_id)
-    msg = get_battle_msg(battle_info, battle_detail)
-    # print(msg)
+    if b_info:
+        # get battle detail
+        battle_detail = Splatoon(chat_id, user.session_token).get_battle_detail(battle_id)
+        msg = get_battle_msg(b_info, battle_detail)
+    else:
+        # get coop detail
+        msg = get_coop_msg(Splatoon(chat_id, user.session_token).get_coop_detail(battle_id))
     await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode='Markdown')
 
 

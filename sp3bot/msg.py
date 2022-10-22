@@ -101,3 +101,34 @@ def get_summary(data, all_data, coop):
 ```
 """
     return msg
+
+
+def coop_row(p):
+    boss = f"x{p['defeatEnemyCount']}"
+    name = p['player']['name'].replace('`', '`\``')
+    return f"`{boss:>3} {p['goldenDeliverCount']:>2} {p['rescuedCount']}d " \
+           f"{p['deliverCount']:>4} {p['rescueCount']}r {name}`"
+
+
+def get_coop_msg(data):
+    detail = data['data']['coopHistoryDetail']
+    my = detail['myResult']
+    wave_msg = ''
+    d_w = {0: '干潮', 1: '普通', 2: '满潮'}
+    for w in detail['waveResults'][:3]:
+        event = (w.get('eventWave') or {}).get('name') or ''
+        wave_msg += f"`W{w['waveNumber']} {w['teamDeliverCount']}/{w['deliverNorm']}({w['goldenPopCount']}) " \
+                    f"{d_w[w['waterLevel']]} {event}`\n"
+    if detail.get('bossResult'):
+        w = detail['waveResults'][-1]
+        r = 'GJ!' if detail['bossResult']['hasDefeatBoss'] else 'NG'
+        wave_msg += f"`EX {detail['bossResult']['boss']['name']} ({w['goldenPopCount']}) {d_w[w['waterLevel']]} {r}`\n"
+    msg = f"""
+`{detail['afterGrade']['name']} {detail['afterGradePoint']} 危险度: {detail['dangerRate']:.0%}`
+{wave_msg}
+{coop_row(my)}
+"""
+    for p in detail['memberResults']:
+        msg += f"""{coop_row(p)}\n"""
+    # logger.info(msg)
+    return msg
