@@ -32,11 +32,9 @@ async def help_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /login - login
 /me - show your info
 /last - show the last battle or coop
-/start_push - start push
-/stop_push - stop push
+/start_push - start push mode
 /set_api_key - set stat.ink api_key
 /show_db_info - show db info
-/clear_db_info - clear db info
 
 source code: https://github.com/paul-sama/sp3bot
     """, disable_web_page_preview=True)
@@ -193,7 +191,7 @@ async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_or_set_user(user_id=update.effective_user.id, push=True, push_cnt=0)
     chat_id = update.effective_chat.id
     context.job_queue.run_repeating(push_latest_battle, interval=INTERVAL, name=str(chat_id), chat_id=chat_id)
-    msg = f'start push!'
+    msg = f'Start push! check new data(battle or coop) every {INTERVAL} seconds. /stop_push to stop'
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
 
 
@@ -258,6 +256,7 @@ push_cnt: {user.push_cnt}
 api_key: {user.api_key}
 user_info: {user.user_info}
 ```
+/clear\_db\_info  clear your data
     """
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='MarkdownV2')
 
@@ -274,7 +273,7 @@ async def clear_db_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         api_key=None,
         user_info=None,
     )
-    msg = "All data cleared!"
+    msg = "All your data cleared!"
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
 
 
