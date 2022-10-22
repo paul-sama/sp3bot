@@ -2,7 +2,7 @@
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, ContextTypes, CommandHandler
 from .controller import (
     start, help_msg, schedule, full_schedule, coop_schedule, mall, unknown, unknown_text, set_token, login, last,
-    start_push, stop_push, set_api_key, show_db_info, clear_db_info, crontab_job, me
+    start_push, stop_push, set_api_key, show_db_info, clear_db_info, crontab_job, me, check_push_job
 )
 from configs import TELEGRAM_BOT_TOKEN
 
@@ -33,6 +33,8 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT, unknown_text))
 
     job_queue = application.job_queue
-    job_queue.run_repeating(crontab_job, interval=60, first=0, name='crontab_job')
+    job_queue.run_once(check_push_job, 1, job_queue)
+    job_queue.run_repeating(crontab_job, interval=60, first=1, name='crontab_job',
+                            job_kwargs=dict(misfire_grace_time=50))
 
     application.run_polling()

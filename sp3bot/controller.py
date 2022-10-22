@@ -190,12 +190,14 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_or_set_user(user_id=update.effective_user.id, push=True, push_cnt=0)
     chat_id = update.effective_chat.id
-    context.job_queue.run_repeating(push_latest_battle, interval=INTERVAL, name=str(chat_id), chat_id=chat_id)
+    context.job_queue.run_repeating(push_latest_battle, interval=INTERVAL, name=str(chat_id), chat_id=chat_id,
+                                    job_kwargs=dict(misfire_grace_time=6))
     msg = f'Start push! check new data(battle or coop) every {INTERVAL} seconds. /stop_push to stop'
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
 
 
 async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
+    logger.debug(f'push_latest_battle: {context.job.name}')
     chat_id = context.job.chat_id
     battle_id, _info, is_battle = await get_last_battle_or_coop(chat_id, for_push=True)
 
@@ -275,6 +277,18 @@ async def clear_db_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     msg = "All your data cleared!"
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+
+
+async def check_push_job(context: ContextTypes.DEFAULT_TYPE):
+    logger.debug('check_push_job')
+    users = get_all_user()
+    job_queue = context.job.data
+    for user in users:
+        if user.push:
+            chat_id = user.id
+            logger.info(f'start push: {user.username}, {chat_id}')
+            job_queue.run_repeating(push_latest_battle, interval=INTERVAL, name=str(chat_id), chat_id=chat_id,
+                                    job_kwargs=dict(misfire_grace_time=6))
 
 
 async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
