@@ -31,17 +31,13 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     judgement = b_info['judgement']
     battle_detail = battle_detail['data']['vsHistoryDetail']
     bankara_match = ((battle_detail or {}).get('bankaraMatch') or {}).get('mode') or ''
-    msg = f"`{mode}, {bankara_match}, {rule}, {judgement}`\n"
+    if bankara_match:
+        bankara_match = f'({bankara_match})'
 
-    my_team = battle_detail['myTeam']
-    other_team = battle_detail['otherTeams'][0]
-    award = battle_detail['awards']
+    msg = f"`{mode}{bankara_match} {rule} {judgement}`\n"
+
     dict_a = {'GOLD': '🏅️', 'SILVER': '🥈', 'BRONZE': '🥉'}
-    award_list = [f"{dict_a.get(a['rank'], '')}`{a['name']}`" for a in award]
-    if judgement == 'WIN':
-        teams = [my_team, other_team]
-    else:
-        teams = [other_team, my_team]
+    award_list = [f"{dict_a.get(a['rank'], '')}`{a['name']}`" for a in battle_detail['awards']]
 
     if 'current_statics' in kwargs:
         current_statics = kwargs['current_statics']
@@ -50,17 +46,16 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
         logger.debug(f"current_statics: {current_statics}")
 
     text_list = []
-    for p in teams[0]['players']:
-        text_list.append(get_row_text(p))
-    text_list.append('\n')
-    for p in teams[1]['players']:
-        text_list.append(get_row_text(p))
-    for t in text_list:
-        # logger.info(t)
-        msg += t
-    duration = battle_detail['duration']
-    knockout = battle_detail['knockout']
-    msg += f"\n`duration: {duration}, knockout: {knockout}`"
+
+    teams = [battle_detail['myTeam']] + battle_detail['otherTeams']
+    for team in sorted(teams, key=lambda x: x['order']):
+        for p in team['players']:
+            text_list.append(get_row_text(p))
+        text_list.append('\n')
+
+    msg += ''.join(text_list)
+
+    msg += f"`duration: {battle_detail['duration']}s, knockout: {battle_detail['knockout']}`"
     msg += ('\n ' + '\n '.join(award_list) + '\n')
     # print(msg)
     return msg
