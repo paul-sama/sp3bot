@@ -131,6 +131,16 @@ def post_battle_to_stat_ink(**kwargs):
 	config_file.write(json.dumps(CONFIG_DATA, indent=4, sort_keys=False, separators=(',', ': ')))
 	config_file.close()
 
+	# edit s3s for acc_loc and agent
+	cmd_list = [
+		"""sed -i 's/acc_lang + "|" + acc_country/"zh-CN|JP"/g' s3s.py""",
+		"""sed -i "100,1000s/agent[^,]*,/agent': 'https:\/\/t.me\/splatoon3_bot',/g" s3s.py""",
+		"""sed -i 's/!= os.path/== os.path/g' s3s.py"""
+	]
+	for cmd in cmd_list:
+		logger.bind(cron=True).debug(f'cli: {cmd}')
+		os.system(cmd)
+
 	cmd = 'python3 s3s.py -r'
 	logger.bind(cron=True).debug(path_user_folder)
 	logger.bind(cron=True).debug(cmd)
