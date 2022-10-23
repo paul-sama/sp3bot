@@ -215,7 +215,8 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
             get_or_set_user(user_id=chat_id, push_cnt=push_cnt)
             if push_cnt * INTERVAL / 60 > 30:
                 context.job.schedule_removal()
-                msg = f'已查询{push_cnt}次 30 mins, 无游戏记录，不再推送 /start_push'
+                get_or_set_user(user_id=chat_id, push=False)
+                msg = 'No game record for 30 minutes, stop push.'
                 logger.info(f'{user.username}, {msg}')
                 await context.bot.send_message(chat_id=chat_id, text=msg)
                 return
