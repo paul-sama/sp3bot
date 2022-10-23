@@ -148,13 +148,6 @@ def get_coop_msg(c_point, data):
 
 
 def get_statics(data):
-    data = {
-        'TOTAL': 17,
-        'WIN': 10,
-        'LOSE': 4,
-        'DEEMED_LOSE': 1,
-        'EXEMPTED_LOSE': 2
-    }
     lst = sorted([(k, v) for k, v in data.items()], key=lambda x: x[1], reverse=True)
     msg = f"""
 Statistics:
