@@ -197,10 +197,12 @@ async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=chat_id, text='You have already started push. /stop_push to stop')
         return
     get_or_set_user(user_id=chat_id, push=True, push_cnt=0)
+    current_statics = defaultdict(int)
+    context.user_data['current_statics'] = current_statics
     context.job_queue.run_repeating(
         push_latest_battle, interval=INTERVAL,
         name=str(chat_id), chat_id=chat_id,
-        data=dict(current_statics=defaultdict(int)),
+        data=dict(current_statics=current_statics),
         job_kwargs=dict(misfire_grace_time=6))
     msg = f'Start push! check new data(battle or coop) every {INTERVAL} seconds. /stop_push to stop'
     await context.bot.send_message(chat_id=chat_id, text=msg)
@@ -247,7 +249,10 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
 async def stop_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_or_set_user(user_id=update.effective_user.id, push=False)
     chat_id = update.effective_chat.id
-    msg = f'stop push!'
+    msg = f'Stop push!'
+    current_statics = context.user_data.get('current_statics')
+    if current_statics:
+        msg += get_statics(current_statics)
     current_jobs = context.job_queue.get_jobs_by_name(str(update.effective_user.id))
     if not current_jobs:
         return False
@@ -256,7 +261,7 @@ async def stop_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if job.name == str(chat_id):
             job.schedule_removal()
             logger.info(f'job: {job.name}, {chat_id} removed')
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 
 
 @check_user_handler
