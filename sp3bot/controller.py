@@ -189,8 +189,14 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @check_session_handler
 async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    get_or_set_user(user_id=update.effective_user.id, push=True, push_cnt=0)
     chat_id = update.effective_chat.id
+    user = get_or_set_user(user_id=chat_id)
+    if user.push:
+        # if /start_push again, set push_cnt 0
+        get_or_set_user(user_id=chat_id, push=True, push_cnt=0)
+        await context.bot.send_message(chat_id=chat_id, text='You have already started push. /stop_push to stop')
+        return
+    get_or_set_user(user_id=chat_id, push=True, push_cnt=0)
     context.job_queue.run_repeating(
         push_latest_battle, interval=INTERVAL,
         name=str(chat_id), chat_id=chat_id,
