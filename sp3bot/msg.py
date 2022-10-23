@@ -25,7 +25,7 @@ def get_row_text(p):
     return t
 
 
-def get_battle_msg(b_info, battle_detail):
+def get_battle_msg(b_info, battle_detail, **kwargs):
     mode = b_info['vsMode']['mode']
     rule = b_info['vsRule']['name']
     judgement = b_info['judgement']
@@ -42,6 +42,11 @@ def get_battle_msg(b_info, battle_detail):
         teams = [my_team, other_team]
     else:
         teams = [other_team, my_team]
+
+    if 'current_statics' in kwargs:
+        current_statics = kwargs['current_statics']
+        current_statics['TOTAL'] += 1
+        current_statics[judgement] += 1
 
     text_list = []
     for p in teams[0]['players']:
@@ -139,4 +144,23 @@ def get_coop_msg(c_point, data):
     for p in detail['memberResults']:
         msg += f"""{coop_row(p)}\n"""
     # logger.info(msg)
+    return msg
+
+
+def get_statics(data):
+    data = {
+        'TOTAL': 17,
+        'WIN': 10,
+        'LOSE': 4,
+        'DEEMED_LOSE': 1,
+        'EXEMPTED_LOSE': 2
+    }
+    lst = sorted([(k, v) for k, v in data.items()], key=lambda x: x[1], reverse=True)
+    msg = f"""
+Statistics:
+```
+{', '.join([f'{k}: {v}' for k, v in lst])}
+WIN_RATE: {data['WIN'] / data['TOTAL']:.2%}
+```
+"""
     return msg

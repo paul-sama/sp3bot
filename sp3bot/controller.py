@@ -1,5 +1,6 @@
 import base64
 import json
+from collections import defaultdict
 from datetime import datetime as dt
 from telegram import Update
 from loguru import logger
@@ -9,7 +10,7 @@ from .botdecorator import check_user_handler, check_session_handler
 from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink
-from .msg import get_battle_msg, INTERVAL, get_summary, get_coop_msg
+from .msg import get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics
 
 
 @check_user_handler
@@ -158,10 +159,10 @@ async def get_last_battle_or_coop(user_id, for_push=False):
         return msg
 
 
-def get_last_msg(splt, _id, extra_info, is_battle=True):
+def get_last_msg(splt, _id, extra_info, is_battle=True, **kwargs):
     if is_battle:
         battle_detail = splt.get_battle_detail(_id)
-        msg = get_battle_msg(extra_info, battle_detail)
+        msg = get_battle_msg(extra_info, battle_detail, **kwargs)
     else:
         coo_detail = splt.get_coop_detail(_id)
         msg = get_coop_msg(extra_info, coo_detail)
@@ -188,17 +189,21 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @check_session_handler
 async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = get_or_set_user(user_id=update.effective_user.id, push=True, push_cnt=0)
+    get_or_set_user(user_id=update.effective_user.id, push=True, push_cnt=0)
     chat_id = update.effective_chat.id
-    context.job_queue.run_repeating(push_latest_battle, interval=INTERVAL, name=str(chat_id), chat_id=chat_id,
-                                    job_kwargs=dict(misfire_grace_time=6))
+    context.job_queue.run_repeating(
+        push_latest_battle, interval=INTERVAL,
+        name=str(chat_id), chat_id=chat_id,
+        data=dict(current_statics=defaultdict(int)),
+        job_kwargs=dict(misfire_grace_time=6))
     msg = f'Start push! check new data(battle or coop) every {INTERVAL} seconds. /stop_push to stop'
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+    await context.bot.send_message(chat_id=chat_id, text=msg)
 
 
 async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
     logger.debug(f'push_latest_battle: {context.job.name}')
     chat_id = context.job.chat_id
+    data = context.job.data or {}
     battle_id, _info, is_battle = await get_last_battle_or_coop(chat_id, for_push=True)
 
     user = get_or_set_user(user_id=chat_id)
@@ -217,8 +222,11 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
                 context.job.schedule_removal()
                 get_or_set_user(user_id=chat_id, push=False)
                 msg = 'No game record for 30 minutes, stop push.'
+
+                if data.get('current_statics'):
+                    msg += get_statics(data['current_statics'])
                 logger.info(f'{user.username}, {msg}')
-                await context.bot.send_message(chat_id=chat_id, text=msg)
+                await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode='Markdown')
                 return
             return
 
@@ -226,7 +234,7 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
     user_info = json.dumps({'battle_id': battle_id})
     get_or_set_user(user_id=chat_id, user_info=user_info, push_cnt=0)
     splt = Splatoon(chat_id, user.session_token)
-    msg = get_last_msg(splt, battle_id, _info, is_battle)
+    msg = get_last_msg(splt, battle_id, _info, is_battle, **data)
     await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode='Markdown')
 
 
