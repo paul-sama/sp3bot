@@ -47,6 +47,7 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
         current_statics = kwargs['current_statics']
         current_statics['TOTAL'] += 1
         current_statics[judgement] += 1
+        logger.debug(f"current_statics: {current_statics}")
 
     text_list = []
     for p in teams[0]['players']:
