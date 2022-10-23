@@ -13,6 +13,10 @@ sys.path.append(f'{pth}/s3s')
 from iksm import *
 A_VERSION = '2.2.2'
 
+APP_USER_AGENT = 'Mozilla/5.0 (Linux; Android 11; Pixel 5) ' \
+		'AppleWebKit/537.36 (KHTML, like Gecko) ' \
+		'Chrome/94.0.4606.61 Mobile Safari/537.36'
+
 
 def log_in(ver):
 	'''Logs in to a Nintendo Account and returns a session_token.'''

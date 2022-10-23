@@ -4,14 +4,13 @@ import time
 import requests
 from loguru import logger
 from .db import get_or_set_user
-from .bot_iksm import A_VERSION
+from .bot_iksm import A_VERSION, APP_USER_AGENT
 
 pth = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pth)
 sys.path.append(f'{pth}/s3s')
 import iksm
 import utils
-from s3s import APP_USER_AGENT
 
 
 class Splatoon:
