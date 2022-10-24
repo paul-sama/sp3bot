@@ -5,3 +5,4 @@ nohup.out
 *.log
 */config.txt
 s3s_user/*
+logs/*
