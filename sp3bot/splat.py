@@ -26,6 +26,7 @@ class Splatoon:
         if user:
             self.bullet_token = user.bullettoken
             self.gtoken = user.gtoken
+            self.user_lang = user.acc_loc if user.acc_loc else self.user_lang
 
     def set_gtoken_and_bullettoken(self):
         F_GEN_URL = 'https://api.imink.app/f'

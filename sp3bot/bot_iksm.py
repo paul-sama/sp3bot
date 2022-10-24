@@ -91,6 +91,7 @@ def post_battle_to_stat_ink(**kwargs):
 	user_name = kwargs.get('user_name')
 	session_token = kwargs.get('session_token')
 	api_key = kwargs.get('api_key')
+	user_lang = kwargs.get('acc_loc') or 'zh-CN'
 	logger.bind(cron=True).debug(f'post_battle_to_stat_ink: {user_name}')
 	logger.bind(cron=True).debug(f'session_token: {session_token}')
 	logger.bind(cron=True).debug(f'api_key: {api_key}')
@@ -124,7 +125,7 @@ def post_battle_to_stat_ink(**kwargs):
 
 	CONFIG_DATA = {
 		"api_key": api_key,
-		"acc_loc": "zh-CN|JP",
+		"acc_loc": "000",
 		"gtoken": "111",
 		"bullettoken": "222",
 		"session_token": session_token,
@@ -137,7 +138,7 @@ def post_battle_to_stat_ink(**kwargs):
 
 	# edit s3s for acc_loc and agent
 	cmd_list = [
-		"""sed -i 's/acc_lang + "|" + acc_country/"zh-CN|JP"/g' s3s.py""",
+		f"""sed -i 's/acc_lang + "|" + acc_country/"{user_lang}|JP"/g' s3s.py""",
 		"""sed -i "100,1000s/agent[^,]*,/agent': 'https:\/\/t.me\/splatoon3_bot',/g" s3s.py""",
 		"""sed -i 's/!= os.path/== os.path/g' s3s.py"""
 	]

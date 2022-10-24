@@ -1,8 +1,9 @@
 
-from telegram.ext import filters, MessageHandler, ApplicationBuilder, ContextTypes, CommandHandler
+from telegram.ext import filters, MessageHandler, ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
 from .controller import (
     start, help_msg, schedule, full_schedule, coop_schedule, mall, unknown, unknown_text, set_token, login, last,
-    start_push, stop_push, set_api_key, show_db_info, clear_db_info, crontab_job, me, check_push_job
+    start_push, stop_push, set_api_key, show_db_info, clear_db_info, crontab_job, me, check_push_job,
+    set_lang, lang_button
 )
 from configs import TELEGRAM_BOT_TOKEN
 
@@ -19,6 +20,8 @@ def main():
     application.add_handler(CommandHandler('coop_schedule', coop_schedule))
     application.add_handler(CommandHandler('mall', mall))
     application.add_handler(CommandHandler('login', login))
+    application.add_handler(CommandHandler('set_lang', set_lang))
+    application.add_handler(CallbackQueryHandler(lang_button))
     application.add_handler(CommandHandler('set_token', set_token))
     application.add_handler(CommandHandler('me', me))
     application.add_handler(CommandHandler('last', last))

@@ -2,7 +2,7 @@ import base64
 import json
 from collections import defaultdict
 from datetime import datetime as dt
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from loguru import logger
 from telegram.ext import ContextTypes
 from .model import show_schedule, show_coop, show_mall
@@ -31,6 +31,7 @@ async def help_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /mall - show the mall
 /help - show this help message
 /login - login
+/set_lang - set language
 /me - show your info
 /last - show the last battle or coop
 /start_push - start push mode
@@ -110,7 +111,44 @@ async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     logger.info(f'session_token: {session_token}')
     user = get_or_set_user(user_id=update.effective_user.id, session_token=session_token)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text='set_token success')
+    await context.bot.send_message(chat_id=update.effective_chat.id, text='Set_token success')
+
+
+@check_user_handler
+async def set_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # https://github.com/frozenpandaman/s3s/wiki/languages
+    all_lang = [
+        ('German', 'de-DE'),
+        ('English (UK/Australia)', 'en-GB'),
+        ('English (US)', 'en-US'),
+        ('Spanish (Spain)', 'es-ES'),
+        ('Spanish (Latin America)', 'es-MX'),
+        ('French (Canada)', 'fr-CA'),
+        ('French (France)', 'fr-FR'),
+        ('Italian', 'it-IT'),
+        ('Japanese', 'ja-JP'),
+        ('Korean', 'ko-KR'),
+        ('Dutch', 'nl-NL'),
+        ('Russian', 'ru-RU'),
+        ('Chinese (China)', 'zh-CN'),
+        ('Chinese (Taiwan)', 'zh-TW'),
+    ]
+    keyboard = [
+        [InlineKeyboardButton(i[0], callback_data=i[1])] for i in all_lang
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Please set your language, default[Chinese (China)]:", reply_markup=reply_markup)
+
+
+async def lang_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
+
+    await query.answer()
+    lang = query.data
+    get_or_set_user(user_id=update.effective_user.id, acc_loc=lang)
+    await query.edit_message_text(text=f"Set language Success! {lang}")
 
 
 @check_session_handler
@@ -276,6 +314,7 @@ session_token: {user.session_token}
 push: {user.push}
 push_cnt: {user.push_cnt}
 api_key: {user.api_key}
+acc_loc: {user.acc_loc}
 user_info: {user.user_info}
 ```
 /clear\_db\_info  clear your data
@@ -293,6 +332,7 @@ async def clear_db_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         push=False,
         push_cnt=0,
         api_key=None,
+        acc_loc=None,
         user_info=None,
     )
     msg = "All your data cleared!"
@@ -322,7 +362,8 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
         if not u.api_key:
             continue
         logger.bind(cron=True).debug(f"get user: {u.username}, have api_key: {u.api_key}")
-        res = post_battle_to_stat_ink(user_name=u.username, session_token=u.session_token, api_key=u.api_key)
+        res = post_battle_to_stat_ink(user_name=u.username, session_token=u.session_token,
+                                      api_key=u.api_key, acc_loc=u.acc_loc)
         if res:
             chat_id = u.id
             msg = f'push {res[0]} battles to stat.ink\n{res[1]}'
