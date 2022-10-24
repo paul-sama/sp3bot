@@ -164,9 +164,15 @@ async def set_api_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     logger.info(f'set_api_key: {api_key}')
 
-    get_or_set_user(user_id=update.effective_user.id, api_key=api_key)
-    msg = 'set_api_key success, bot will check every 3 hours and post your data to stat.ink'
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+    user_id = update.effective_user.id
+    get_or_set_user(user_id=user_id, api_key=api_key)
+    msg = f'''set_api_key success, bot will check every 3 hours and post your data to stat.ink.
+first sync will be in minutes.
+    '''
+    await context.bot.send_message(chat_id=user_id, text=msg)
+
+    # sync data immediately
+    context.job_queue.run_once(crontab_job, 1, data={'user_id': user_id})
 
 
 async def get_last_battle_or_coop(user_id, for_push=False):
@@ -353,13 +359,20 @@ async def check_push_job(context: ContextTypes.DEFAULT_TYPE):
 
 async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
     now = dt.now()
+    data = context.job.data or {}
+    user_id = data.get('user_id')
     # run every 3 hours
-    if not (now.hour % 3 == 0 and now.minute == 0):
-        return
+
+    if not user_id:
+        if not (now.hour % 3 == 0 and now.minute == 0):
+            return
+
     logger.bind(cron=True).debug(f"crontab_job")
     users = get_all_user()
     for u in users:
         if not u.api_key:
+            continue
+        if user_id and user_id != u.id:
             continue
         logger.bind(cron=True).debug(f"get user: {u.username}, have api_key: {u.api_key}")
         res = post_battle_to_stat_ink(user_name=u.username, session_token=u.session_token,
