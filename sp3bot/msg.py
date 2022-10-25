@@ -29,12 +29,19 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     mode = b_info['vsMode']['mode']
     rule = b_info['vsRule']['name']
     judgement = b_info['judgement']
+    udemae = b_info['udemae']
     battle_detail = battle_detail['data']['vsHistoryDetail']
     bankara_match = ((battle_detail or {}).get('bankaraMatch') or {}).get('mode') or ''
+    point = 0
     if bankara_match:
         bankara_match = f'({bankara_match})'
+        if bankara_match == '(OPEN)':
+            point = b_info['bankaraMatch']['earnedUdemaePoint']
+            if point > 0:
+                point = f'+{point}'
+    str_point = f'{point}p' if point else ''
 
-    msg = f"`{mode}{bankara_match} {rule} {judgement}`\n"
+    msg = f"`{mode}{bankara_match} {rule} {judgement} {udemae} {str_point}`\n"
 
     dict_a = {'GOLD': '🏅️', 'SILVER': '🥈', 'BRONZE': '🥉'}
     award_list = [f"{dict_a.get(a['rank'], '')}`{a['name']}`" for a in battle_detail['awards']]
@@ -43,6 +50,7 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
         current_statics = kwargs['current_statics']
         current_statics['TOTAL'] += 1
         current_statics[judgement] += 1
+        current_statics['point'] += int(point)
         logger.debug(f"current_statics: {current_statics}")
 
     text_list = []
@@ -144,12 +152,19 @@ def get_coop_msg(c_point, data):
 
 
 def get_statics(data):
+    point = 0
+    if data.get('point'):
+        point = data['point']
+        del data['point']
+    point = f'+{point}' if point > 0 else point
+    point_str = f"Point: {point:,}p" if point else ''
     lst = sorted([(k, v) for k, v in data.items()], key=lambda x: x[1], reverse=True)
     msg = f"""
 Statistics:
 ```
 {', '.join([f'{k}: {v}' for k, v in lst])}
 WIN_RATE: {data['WIN'] / data['TOTAL']:.2%}
+{point_str}
 ```
 """
     return msg
