@@ -2,12 +2,13 @@
 # https://github.com/frozenpandaman/s3s
 # License: GPLv3
 
-import base64, datetime, json, re, requests, uuid
+import base64, datetime, json, re, sys, uuid
+import requests
 from bs4 import BeautifulSoup
 
 SPLATNET3_URL = "https://api.lp1.av5ja.srv.nintendo.net"
 GRAPHQL_URL  = "https://api.lp1.av5ja.srv.nintendo.net/api/graphql"
-WEB_VIEW_VERSION = "1.0.0-216d0219" # fallback
+WEB_VIEW_VERSION = "1.0.0-5644e7a2" # fallback
 S3S_NAMESPACE = uuid.UUID('b3a2dbf5-2c09-4792-b78c-00b548b70aeb')
 
 # SHA256 hash database for SplatNet 3 GraphQL queries
@@ -103,3 +104,8 @@ def custom_key_exists(key, config_data, value=True):
 	if key not in ["ignore_private", "app_user_agent", "force_uploads"]:
 		print("(!) Checking unexpected custom key")
 	return True if key in config_data and config_data[key].lower() == str(value).lower() else False
+
+
+if __name__ == "__main__":
+	print("This program cannot be run alone. See https://github.com/frozenpandaman/s3s")
+	sys.exit(0)
