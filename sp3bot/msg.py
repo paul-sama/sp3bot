@@ -157,7 +157,7 @@ def get_statics(data):
         point = data['point']
         del data['point']
     point = f'+{point}' if point > 0 else point
-    point_str = f"Point: {point:,}p" if point else ''
+    point_str = f"Point: {point}p" if point else ''
     lst = sorted([(k, v) for k, v in data.items()], key=lambda x: x[1], reverse=True)
     msg = f"""
 Statistics:
