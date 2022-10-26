@@ -155,6 +155,7 @@ def get_statics(data):
     point = 0
     if data.get('point'):
         point = data['point']
+    if 'point' in data:
         del data['point']
     point = f'+{point}' if point > 0 else point
     point_str = f"Point: {point}p" if point else ''
