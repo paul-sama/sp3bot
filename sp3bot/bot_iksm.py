@@ -125,7 +125,7 @@ def post_battle_to_stat_ink(**kwargs):
 
 	CONFIG_DATA = {
 		"api_key": api_key,
-		"acc_loc": "000",
+		"acc_loc": f"{user_lang}|JP",
 		"gtoken": "111",
 		"bullettoken": "222",
 		"session_token": session_token,
@@ -138,7 +138,6 @@ def post_battle_to_stat_ink(**kwargs):
 
 	# edit s3s for acc_loc and agent
 	cmd_list = [
-		f"""sed -i 's/acc_lang + "|" + acc_country/"{user_lang}|JP"/g' s3s.py""",
 		"""sed -i "100,1000s/agent[^,]*,/agent': 'https:\/\/t.me\/splatoon3_bot',/g" s3s.py""",
 		"""sed -i 's/!= os.path/== os.path/g' s3s.py"""
 	]
