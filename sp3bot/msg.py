@@ -1,7 +1,12 @@
 import json
-
+import os
+import sys
 from datetime import datetime as dt, timedelta
 from loguru import logger
+pth = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(pth)
+sys.path.append(f'{pth}/s3s')
+import utils
 
 INTERVAL = 10
 
@@ -36,9 +41,30 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     if bankara_match:
         bankara_match = f'({bankara_match})'
         if bankara_match == '(OPEN)':
+            # open
             point = b_info['bankaraMatch']['earnedUdemaePoint']
             if point > 0:
                 point = f'+{point}'
+        else:
+            # challenge
+            try:
+                splt = kwargs.get('splt')
+                data = utils.gen_graphql_body(utils.translate_rid['BankaraBattleHistoriesQuery'])
+                bankara_info = splt._request(data, skip_check_token=True)
+                hg = bankara_info['data']['bankaraBattleHistories']['historyGroups']['nodes'][0]
+                point = hg['bankaraMatchChallenge']['earnedUdemaePoint'] or 0
+                bankara_detail = hg['bankaraMatchChallenge']
+                if point > 0:
+                    point = f'+{point}'
+                if point == 0 and bankara_detail and (
+                        len(hg['historyDetails']['nodes']) == 1 and
+                        bankara_detail.get('maxWinCount') == 5 and
+                        bankara_detail.get('winCount') + bankara_detail.get('loseCount') == 1):
+                    # first battle, S+ open ticket -160
+                    point = -160
+            except Exception as e:
+                logger.exception(e)
+
     str_point = f'{point}p' if point else ''
 
     msg = f"`{mode}{bankara_match} {rule} {judgement} {udemae} {str_point}`\n"
