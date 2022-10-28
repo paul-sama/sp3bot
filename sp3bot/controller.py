@@ -376,8 +376,9 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
             continue
         if user_id and user_id != u.id:
             continue
+        u_id = u.id
         logger.bind(cron=True).debug(f"get user: {u.username}, have api_key: {u.api_key}")
-        res = post_battle_to_stat_ink(user_name=u.username, session_token=u.session_token,
+        res = post_battle_to_stat_ink(user_id=u_id, session_token=u.session_token,
                                       api_key=u.api_key, acc_loc=u.acc_loc)
         if res:
             chat_id = u.id

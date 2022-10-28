@@ -88,11 +88,11 @@ def login_2(use_account_url, auth_code_verifier):
 
 
 def post_battle_to_stat_ink(**kwargs):
-	user_name = kwargs.get('user_name')
+	user_id = kwargs.get('user_id')
 	session_token = kwargs.get('session_token')
 	api_key = kwargs.get('api_key')
 	user_lang = kwargs.get('acc_loc') or 'zh-CN'
-	logger.bind(cron=True).debug(f'post_battle_to_stat_ink: {user_name}')
+	logger.bind(cron=True).debug(f'post_battle_to_stat_ink: {user_id}')
 	logger.bind(cron=True).debug(f'session_token: {session_token}')
 	logger.bind(cron=True).debug(f'api_key: {api_key}')
 
@@ -113,7 +113,7 @@ def post_battle_to_stat_ink(**kwargs):
 		rtn = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE).stdout.decode('utf-8')
 		logger.bind(cron=True).debug(f'cli: {rtn}')
 
-	path_user_folder = f'{path_folder}/{user_name}'
+	path_user_folder = f'{path_folder}/{user_id}'
 	if not os.path.exists(path_user_folder):
 		os.mkdir(path_user_folder)
 	os.chdir(path_user_folder)
