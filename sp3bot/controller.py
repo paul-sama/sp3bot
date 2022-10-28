@@ -104,7 +104,13 @@ async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                        text="Please past the link address after /set_token")
         return
 
-    auth_code_verifier = context.user_data['auth_code_verifier']
+    try:
+        auth_code_verifier = context.user_data['auth_code_verifier']
+    except KeyError:
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                       text="set token failed, please try again. /login")
+        return
+
     logger.info(f'auth_code_verifier: {auth_code_verifier}')
     session_token = login_2(use_account_url=token, auth_code_verifier=auth_code_verifier)
     if session_token == 'skip':
@@ -113,7 +119,15 @@ async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     logger.info(f'session_token: {session_token}')
     user = get_or_set_user(user_id=update.effective_user.id, session_token=session_token)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text='Set_token success')
+    msg = f"""
+Set token success! Bot now can get your splatoon3 data from SplatNet.
+/set_lang - set language
+/set_api_key - set stat.ink api_key, bot will sync your battles to stat.ink
+/me - show your info
+/last - show the latest battle or coop
+/start_push - start push mode
+"""
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
 
 
 @check_user_handler
@@ -160,7 +174,8 @@ async def set_api_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if len(api_key) != 43:
             raise IndexError
     except IndexError:
-        msg = 'Please copy you api_key from https://stat.ink/profile then paste after /set_api_key'
+        msg = '''Please copy you api_key from https://stat.ink/profile then paste after
+/set_api_key your_api_key'''
         await context.bot.send_message(chat_id=update.effective_chat.id,
                                        text=msg, disable_web_page_preview=True)
         return
