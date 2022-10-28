@@ -87,7 +87,8 @@ https://github.com/frozenpandaman/s3s#token-generation-
 
 Navigate to this URL in your browser:
 {url}
-Log in, right click the "Select this account" button, copy the link address, and /set_token the_link_address
+Log in, right click the "Select this account" button, copy the link address, and input:
+/set_token the_link_address
 """
         logger.info(msg)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, disable_web_page_preview=True)
