@@ -184,13 +184,18 @@ async def get_last_battle_or_coop(user_id, for_push=False):
     res = splt.get_recent_battles(skip_check_token=True if for_push else False)
     b_info = res['data']['latestBattleHistories']['historyGroups']['nodes'][0]['historyDetails']['nodes'][0]
     battle_id = b_info['id']
+    battle_t = base64.b64decode(battle_id).decode('utf-8').split('_')[0].split(':')[-1]
 
     # get last coop
     res = splt.get_coops()
-    c_point = res['data']['coopResult']['pointCard']['regularPoint']
-    coop_id = res['data']['coopResult']['historyGroups']['nodes'][0]['historyDetails']['nodes'][0]['id']
-    battle_t = base64.b64decode(battle_id).decode('utf-8').split('_')[0].split(':')[-1]
-    coop_t = base64.b64decode(coop_id).decode('utf-8').split('_')[0].split(':')[-1]
+    try:
+        c_point = res['data']['coopResult']['pointCard']['regularPoint']
+        coop_id = res['data']['coopResult']['historyGroups']['nodes'][0]['historyDetails']['nodes'][0]['id']
+        coop_t = base64.b64decode(coop_id).decode('utf-8').split('_')[0].split(':')[-1]
+    except:
+        c_point = 0
+        coop_id = ''
+        coop_t = ''
 
     if battle_t > coop_t:
         if for_push:
