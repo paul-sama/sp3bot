@@ -1,8 +1,9 @@
 import base64
 import json
+import time
 from collections import defaultdict
 from datetime import datetime as dt
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from loguru import logger
 from telegram.ext import ContextTypes
 from .model import show_schedule, show_coop, show_mall
@@ -388,4 +389,11 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
         if res:
             chat_id = u.id
             msg = f'push {res[0]} battles to stat.ink\n{res[1]}'
-            await context.bot.send_message(chat_id=chat_id, text=msg, disable_web_page_preview=True)
+            while True:
+                try:
+                    ret = await context.bot.send_message(chat_id=chat_id, text=msg, disable_web_page_preview=True)
+                    if isinstance(ret, Message):
+                        break
+                except Exception as e:
+                    logger.bind(cron=True).error(f"post_battle_to_stat_ink: {e}")
+                    time.sleep(5)
