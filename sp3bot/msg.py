@@ -149,7 +149,7 @@ def get_coop_msg(c_point, data):
     detail = data['data']['coopHistoryDetail']
     my = detail['myResult']
     wave_msg = ''
-    d_w = {0: '🌘', 1: '🌗', 2: '🌖'}
+    d_w = {0: '∼', 1: '≈', 2: '≋'}
     for w in detail['waveResults'][:3]:
         event = (w.get('eventWave') or {}).get('name') or ''
         wave_msg += f"`W{w['waveNumber']} {w['teamDeliverCount']}/{w['deliverNorm']}({w['goldenPopCount']}) " \
