@@ -198,6 +198,8 @@ async def get_last_battle_or_coop(user_id, for_push=False):
 
     # get last battle
     res = splt.get_recent_battles(skip_check_token=True if for_push else False)
+    if not res:
+        return None
     b_info = res['data']['latestBattleHistories']['historyGroups']['nodes'][0]['historyDetails']['nodes'][0]
     battle_id = b_info['id']
     battle_t = base64.b64decode(battle_id).decode('utf-8').split('_')[0].split(':')[-1]
@@ -240,7 +242,8 @@ def get_last_msg(splt, _id, extra_info, is_battle=True, **kwargs):
 async def last(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     msg = await get_last_battle_or_coop(user_id)
-    await context.bot.send_message(chat_id=user_id, text=msg, parse_mode='Markdown')
+    if msg:
+        await context.bot.send_message(chat_id=user_id, text=msg, parse_mode='Markdown')
 
 
 @check_session_handler
@@ -251,6 +254,7 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
     all_res = splt.get_all_res()
     coop = splt.get_coop_summary()
     msg = get_summary(res, all_res, coop)
+    logger.debug(msg)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 
 
@@ -279,7 +283,10 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
     logger.debug(f'push_latest_battle: {context.job.name}')
     chat_id = context.job.chat_id
     data = context.job.data or {}
-    battle_id, _info, is_battle = await get_last_battle_or_coop(chat_id, for_push=True)
+    res = await get_last_battle_or_coop(chat_id, for_push=True)
+    if not res:
+        return
+    battle_id, _info, is_battle = res
 
     user = get_or_set_user(user_id=chat_id)
     if user.user_info:
