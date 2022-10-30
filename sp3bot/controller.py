@@ -415,6 +415,7 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
                 try:
                     ret = await context.bot.send_message(chat_id=chat_id, text=msg, disable_web_page_preview=True)
                     if isinstance(ret, Message):
+                        logger.bind(cron=True).debug(f"send message: {ret.text}")
                         break
                 except Exception as e:
                     logger.bind(cron=True).error(f"post_battle_to_stat_ink: {e}")
