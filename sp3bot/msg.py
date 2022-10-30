@@ -10,6 +10,20 @@ import utils
 
 INTERVAL = 10
 
+DICT_RANK_POINT = {
+    'C-': 0,
+    'C': 20,
+    'C+': 40,
+    'B-': 55,
+    'B': 70,
+    'B+': 85,
+    'A-': 100,
+    'A': 110,
+    'A+': 120,
+    'S': -150,
+    'S+': -160,
+}
+
 
 def get_row_text(p):
     re = p['result']
@@ -60,8 +74,8 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
                         len(hg['historyDetails']['nodes']) == 1 and
                         bankara_detail.get('maxWinCount') == 5 and
                         bankara_detail.get('winCount') + bankara_detail.get('loseCount') == 1):
-                    # first battle, S+ open ticket -160
-                    point = -160
+                    # first battle, open ticket
+                    point = DICT_RANK_POINT.get(udemae[:2], 0)
             except Exception as e:
                 logger.exception(e)
 
