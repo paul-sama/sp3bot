@@ -38,6 +38,6 @@ def main():
     job_queue = application.job_queue
     job_queue.run_once(check_push_job, 1, job_queue)
     job_queue.run_repeating(crontab_job, interval=60, first=1, name='crontab_job',
-                            job_kwargs=dict(misfire_grace_time=50))
+                            job_kwargs=dict(misfire_grace_time=50, coalesce=False, max_instances=3))
 
     application.run_polling()

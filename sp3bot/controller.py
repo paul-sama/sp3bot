@@ -274,7 +274,7 @@ async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
         push_latest_battle, interval=INTERVAL,
         name=str(chat_id), chat_id=chat_id,
         data=dict(current_statics=current_statics),
-        job_kwargs=dict(misfire_grace_time=6))
+        job_kwargs=dict(misfire_grace_time=9, coalesce=False, max_instances=3))
     msg = f'Start push! check new data(battle or coop) every {INTERVAL} seconds. /stop_push to stop'
     await context.bot.send_message(chat_id=chat_id, text=msg)
 
@@ -384,7 +384,7 @@ async def check_push_job(context: ContextTypes.DEFAULT_TYPE):
             chat_id = user.id
             logger.info(f'start push: {user.username}, {chat_id}')
             job_queue.run_repeating(push_latest_battle, interval=INTERVAL, name=str(chat_id), chat_id=chat_id,
-                                    job_kwargs=dict(misfire_grace_time=6))
+                                    job_kwargs=dict(misfire_grace_time=9, coalesce=False, max_instances=3))
 
 
 async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
