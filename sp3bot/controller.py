@@ -273,7 +273,7 @@ async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.job_queue.run_repeating(
         push_latest_battle, interval=INTERVAL,
         name=str(chat_id), chat_id=chat_id,
-        data=dict(current_statics=current_statics),
+        data=dict(current_statics=current_statics, successive=0),
         job_kwargs=dict(misfire_grace_time=9, coalesce=False, max_instances=3))
     msg = f'Start push! check new data(battle or coop) every {INTERVAL} seconds. /stop_push to stop'
     await context.bot.send_message(chat_id=chat_id, text=msg)

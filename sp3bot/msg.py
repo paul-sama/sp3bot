@@ -93,6 +93,15 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
         current_statics['point'] += int(point)
         logger.debug(f"current_statics: {current_statics}")
 
+    succ = 0
+    if 'successive' in kwargs:
+        successive = kwargs['successive']
+        if judgement == 'WIN':
+            kwargs['successive'] = max(successive, 0) + 1
+        elif judgement not in ('DRAW', ):
+            kwargs['successive'] = min(successive, 0) - 1
+        succ = kwargs['successive']
+
     text_list = []
 
     teams = [battle_detail['myTeam']] + battle_detail['otherTeams']
@@ -104,6 +113,13 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     msg += ''.join(text_list)
 
     msg += f"`duration: {battle_detail['duration']}s, knockout: {battle_detail['knockout']}`"
+
+    if abs(succ) >= 3:
+        if succ > 0:
+            msg += f'`, {succ}连胜`'
+        else:
+            msg += f'`, {abs(succ)}连败`'
+
     msg += ('\n ' + '\n '.join(award_list) + '\n')
     # print(msg)
     return msg
