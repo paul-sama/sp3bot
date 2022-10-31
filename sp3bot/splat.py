@@ -67,17 +67,21 @@ class Splatoon:
             self.set_gtoken_and_bullettoken()
 
     def _request(self, data, skip_check_token=False):
-        if not skip_check_token:
-            self.test_page()
-        t = time.time()
-        res = requests.post(utils.GRAPHQL_URL, data=data,
-                            headers=self.headbutt(self.bullet_token), cookies=dict(_gtoken=self.gtoken))
-        logger.debug(f'_request: {time.time() - t:.3f}s')
-        if res.status_code != 200:
-            logger.info('tokens have expired.')
-            self.set_gtoken_and_bullettoken()
-        else:
-            return res.json()
+        try:
+            if not skip_check_token:
+                self.test_page()
+            t = time.time()
+            res = requests.post(utils.GRAPHQL_URL, data=data,
+                                headers=self.headbutt(self.bullet_token), cookies=dict(_gtoken=self.gtoken))
+            logger.debug(f'_request: {time.time() - t:.3f}s')
+            if res.status_code != 200:
+                logger.info('tokens have expired.')
+                self.set_gtoken_and_bullettoken()
+            else:
+                return res.json()
+        except Exception as e:
+            logger.exception(f'_request error: {e}')
+            return None
 
     def get_recent_battles(self, skip_check_token=False):
         data = utils.gen_graphql_body(utils.translate_rid['LatestBattleHistoriesQuery'])

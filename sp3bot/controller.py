@@ -418,5 +418,5 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
                         logger.bind(cron=True).debug(f"send message: {ret.text}")
                         break
                 except Exception as e:
-                    logger.bind(cron=True).error(f"post_battle_to_stat_ink: {e}")
+                    logger.bind(cron=True).exception(f"post_battle_to_stat_ink: {e}")
                     time.sleep(5)
