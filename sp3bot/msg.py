@@ -86,21 +86,22 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     dict_a = {'GOLD': '🏅️', 'SILVER': '🥈', 'BRONZE': '🥉'}
     award_list = [f"{dict_a.get(a['rank'], '')}`{a['name']}`" for a in battle_detail['awards']]
 
+    succ = 0
     if 'current_statics' in kwargs:
         current_statics = kwargs['current_statics']
         current_statics['TOTAL'] += 1
         current_statics[judgement] += 1
         current_statics['point'] += int(point)
-        logger.debug(f"current_statics: {current_statics}")
 
-    succ = 0
-    if 'successive' in kwargs:
-        successive = kwargs['successive']
+        successive = current_statics['successive']
         if judgement == 'WIN':
-            kwargs['successive'] = max(successive, 0) + 1
+            successive = max(successive, 0) + 1
         elif judgement not in ('DRAW', ):
-            kwargs['successive'] = min(successive, 0) - 1
-        succ = kwargs['successive']
+            successive = min(successive, 0) - 1
+        current_statics['successive'] = successive
+        succ = current_statics['successive']
+
+        logger.info(f"current_statics: {current_statics}")
 
     text_list = []
 
@@ -213,6 +214,8 @@ def get_statics(data):
         point = data['point']
     if 'point' in data:
         del data['point']
+    if 'successive' in data:
+        del data['successive']
     point = f'+{point}' if point > 0 else point
     point_str = f"Point: {point}p" if point else ''
     lst = sorted([(k, v) for k, v in data.items()], key=lambda x: x[1], reverse=True)
