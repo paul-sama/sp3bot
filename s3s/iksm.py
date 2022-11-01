@@ -336,7 +336,7 @@ def call_imink_api(id_token, step, f_gen_url):
 
 	try:
 		api_head = {
-			'User-Agent':   f's3s/{S3S_VERSION}',
+			'User-Agent':   f'sp3bot/{S3S_VERSION}',
 			'Content-Type': 'application/json; charset=utf-8'
 		}
 		api_body = {
