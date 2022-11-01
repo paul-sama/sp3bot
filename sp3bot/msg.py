@@ -101,7 +101,7 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
         current_statics['successive'] = successive
         succ = current_statics['successive']
 
-        logger.info(f"current_statics: {current_statics}")
+        logger.debug(f"current_statics: {current_statics}")
 
     text_list = []
 
