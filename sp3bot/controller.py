@@ -97,6 +97,7 @@ Log in, right click the "Select this account" button, copy the link address, and
 
 async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
+    user_id = update.effective_user.id
     token = text[10:]
     logger.info(f'{update.effective_user.username} set_token: {token}')
     if not token:
@@ -128,7 +129,7 @@ Set token success! Bot now can get your splatoon3 data from SplatNet.
 /start_push - start push mode
 """
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
-
+    Splatoon(user_id, user.session_token).set_gtoken_and_bullettoken()
 
 @check_user_handler
 async def set_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

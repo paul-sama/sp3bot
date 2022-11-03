@@ -34,10 +34,10 @@ class Splatoon:
         new_bullettoken = iksm.get_bullet(new_gtoken, utils.get_web_view_ver(), APP_USER_AGENT, acc_lang, acc_country)
         self.gtoken = new_gtoken
         self.bullet_token = new_bullettoken
-        logger.info('tokens have been updated.')
+        logger.info(f'{self.user_id} tokens updated.')
         logger.debug(f'new gtoken: {new_gtoken}')
         logger.debug(f'new bullettoken: {new_bullettoken}')
-        user = get_or_set_user(user_id=self.user_id, gtoken=new_gtoken, bullettoken=new_bullettoken)
+        get_or_set_user(user_id=self.user_id, gtoken=new_gtoken, bullettoken=new_bullettoken)
         return True
 
     def headbutt(self, bullet_token):
@@ -63,7 +63,7 @@ class Splatoon:
                              headers=self.headbutt(self.bullet_token), cookies=dict(_gtoken=self.gtoken))
         # logger.debug(f'_test_page: {time.time() - t:.3f}s')
         if test.status_code != 200:
-            logger.info('tokens have expired.')
+            logger.info(f'{self.user_id} tokens expired.')
             self.set_gtoken_and_bullettoken()
 
     def _request(self, data, skip_check_token=False):
