@@ -44,6 +44,45 @@ def get_row_text(p):
     return t
 
 
+def get_point(**kwargs):
+    try:
+        point = 0
+        bankara_match = kwargs.get('bankara_match')
+        if not bankara_match:
+            return point
+
+        b_info = kwargs['b_info']
+
+        if bankara_match == 'OPEN':
+            # open
+            point = b_info['bankaraMatch']['earnedUdemaePoint']
+            if point > 0:
+                point = f'+{point}'
+        else:
+            # challenge
+            splt = kwargs.get('splt')
+            data = utils.gen_graphql_body(utils.translate_rid['BankaraBattleHistoriesQuery'])
+            bankara_info = splt._request(data, skip_check_token=True)
+            hg = bankara_info['data']['bankaraBattleHistories']['historyGroups']['nodes'][0]
+            point = hg['bankaraMatchChallenge']['earnedUdemaePoint'] or 0
+            bankara_detail = hg['bankaraMatchChallenge']
+            if point > 0:
+                point = f'+{point}'
+            if point == 0 and bankara_detail and (
+                    len(hg['historyDetails']['nodes']) == 1 and
+                    bankara_detail.get('maxWinCount') == 5 and
+                    bankara_detail.get('winCount') + bankara_detail.get('loseCount') == 1):
+                # first battle, open ticket
+                udemae = b_info.get('udemae') or ''
+                point = DICT_RANK_POINT.get(udemae[:2], 0)
+
+    except Exception as e:
+        logger.exception(e)
+        point = 0
+
+    return point
+
+
 def set_statics(**kwargs):
     try:
         current_statics = kwargs['current_statics']
@@ -84,68 +123,38 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     mode = b_info['vsMode']['mode']
     rule = b_info['vsRule']['name']
     judgement = b_info['judgement']
-    udemae = b_info['udemae']
     battle_detail = battle_detail['data']['vsHistoryDetail']
     bankara_match = ((battle_detail or {}).get('bankaraMatch') or {}).get('mode') or ''
-    point = 0
+
+    point = get_point(bankara_match=bankara_match, b_info=b_info, splt=kwargs.get('splt'))
     if bankara_match:
         bankara_match = f'({bankara_match})'
-        if bankara_match == '(OPEN)':
-            # open
-            point = b_info['bankaraMatch']['earnedUdemaePoint']
-            if point > 0:
-                point = f'+{point}'
-        else:
-            # challenge
-            try:
-                splt = kwargs.get('splt')
-                data = utils.gen_graphql_body(utils.translate_rid['BankaraBattleHistoriesQuery'])
-                bankara_info = splt._request(data, skip_check_token=True)
-                hg = bankara_info['data']['bankaraBattleHistories']['historyGroups']['nodes'][0]
-                point = hg['bankaraMatchChallenge']['earnedUdemaePoint'] or 0
-                bankara_detail = hg['bankaraMatchChallenge']
-                if point > 0:
-                    point = f'+{point}'
-                if point == 0 and bankara_detail and (
-                        len(hg['historyDetails']['nodes']) == 1 and
-                        bankara_detail.get('maxWinCount') == 5 and
-                        bankara_detail.get('winCount') + bankara_detail.get('loseCount') == 1):
-                    # first battle, open ticket
-                    point = DICT_RANK_POINT.get(udemae[:2], 0)
-            except Exception as e:
-                logger.exception(e)
-
     str_point = f'{point}p' if point else ''
+    msg = f"`{mode}{bankara_match} {rule} {judgement} {b_info.get('udemae') or ''} {str_point}`\n"
 
-    msg = f"`{mode}{bankara_match} {rule} {judgement} {udemae} {str_point}`\n"
+    text_list = []
+    teams = [battle_detail['myTeam']] + battle_detail['otherTeams']
+    for team in sorted(teams, key=lambda x: x['order']):
+        for p in team['players']:
+            text_list.append(get_row_text(p))
+        text_list.append('\n')
+    msg += ''.join(text_list)
 
-    dict_a = {'GOLD': '🏅️', 'SILVER': '🥈', 'BRONZE': '🥉'}
-    award_list = [f"{dict_a.get(a['rank'], '')}`{a['name']}`" for a in battle_detail['awards']]
+    msg += f"`duration: {battle_detail['duration']}s, knockout: {battle_detail['knockout']}`"
 
     succ = 0
     if 'current_statics' in kwargs:
         current_statics = kwargs['current_statics']
         set_statics(current_statics=current_statics, judgement=judgement, point=point, battle_detail=battle_detail)
         succ = current_statics['successive']
-
-    text_list = []
-
-    teams = [battle_detail['myTeam']] + battle_detail['otherTeams']
-    for team in sorted(teams, key=lambda x: x['order']):
-        for p in team['players']:
-            text_list.append(get_row_text(p))
-        text_list.append('\n')
-
-    msg += ''.join(text_list)
-
-    msg += f"`duration: {battle_detail['duration']}s, knockout: {battle_detail['knockout']}`"
-
     if abs(succ) >= 3:
         if succ > 0:
             msg += f'`, {succ}连胜`'
         else:
             msg += f'`, {abs(succ)}连败`'
 
+    dict_a = {'GOLD': '🏅️', 'SILVER': '🥈', 'BRONZE': '🥉'}
+    award_list = [f"{dict_a.get(a['rank'], '')}`{a['name']}`" for a in battle_detail['awards']]
     msg += ('\n ' + '\n '.join(award_list) + '\n')
     # print(msg)
     return msg
