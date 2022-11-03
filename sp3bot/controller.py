@@ -129,6 +129,8 @@ Set token success! Bot now can get your splatoon3 data from SplatNet.
 /start_push - start push mode
 """
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+
+    user = get_or_set_user(user_id=user_id)
     Splatoon(user_id, user.session_token).set_gtoken_and_bullettoken()
 
 @check_user_handler
