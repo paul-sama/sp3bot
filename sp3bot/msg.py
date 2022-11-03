@@ -44,6 +44,42 @@ def get_row_text(p):
     return t
 
 
+def set_statics(**kwargs):
+    try:
+        current_statics = kwargs['current_statics']
+        judgement = kwargs['judgement']
+        point = kwargs['point']
+        battle_detail = kwargs['battle_detail']
+
+        current_statics['TOTAL'] += 1
+        current_statics[judgement] += 1
+        current_statics['point'] += int(point)
+
+        successive = current_statics['successive']
+        if judgement == 'WIN':
+            successive = max(successive, 0) + 1
+        elif judgement not in ('DRAW',):
+            successive = min(successive, 0) - 1
+        current_statics['successive'] = successive
+
+        for p in battle_detail['myTeam']['players']:
+            if not p.get('isMyself'):
+                continue
+            if not p.get('result'):
+                continue
+            current_statics['KA'] += p['result']['kill']
+            current_statics['K'] += p['result']['kill'] - p['result']['assist']
+            current_statics['A'] += p['result']['assist']
+            current_statics['D'] += p['result']['death']
+            current_statics['S'] += p['result']['special']
+            current_statics['P'] += p['paint']
+
+        logger.debug(f"current_statics: {current_statics}")
+
+    except Exception as e:
+        logger.exception(e)
+
+
 def get_battle_msg(b_info, battle_detail, **kwargs):
     mode = b_info['vsMode']['mode']
     rule = b_info['vsRule']['name']
@@ -89,19 +125,8 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     succ = 0
     if 'current_statics' in kwargs:
         current_statics = kwargs['current_statics']
-        current_statics['TOTAL'] += 1
-        current_statics[judgement] += 1
-        current_statics['point'] += int(point)
-
-        successive = current_statics['successive']
-        if judgement == 'WIN':
-            successive = max(successive, 0) + 1
-        elif judgement not in ('DRAW', ):
-            successive = min(successive, 0) - 1
-        current_statics['successive'] = successive
+        set_statics(current_statics=current_statics, judgement=judgement, point=point, battle_detail=battle_detail)
         succ = current_statics['successive']
-
-        logger.debug(f"current_statics: {current_statics}")
 
     text_list = []
 
@@ -212,10 +237,17 @@ def get_statics(data):
     point = 0
     if data.get('point'):
         point = data['point']
-    if 'point' in data:
-        del data['point']
-    if 'successive' in data:
-        del data['successive']
+
+    my_str = ''
+    if data.get('KA'):
+        k_rate = data.get('K', 0) / data['D'] if data.get('D') else 99
+        my_str += f"{data.get('KA', 0)} {data.get('K', 0)}+{data.get('A', 0)}k {data.get('D', 0)}d " \
+                  f"{k_rate:.2f} {data.get('S', 0)}sp {data.get('P', 0)}p"
+
+    for k in ('point', 'successive', 'KA', 'K', 'A', 'D', 'S', 'P'):
+        if k in data:
+            del data[k]
+
     point = f'+{point}' if point > 0 else point
     point_str = f"Point: {point}p" if point else ''
     lst = sorted([(k, v) for k, v in data.items()], key=lambda x: x[1], reverse=True)
@@ -225,6 +257,7 @@ Statistics:
 {', '.join([f'{k}: {v}' for k, v in lst])}
 WIN_RATE: {data['WIN'] / data['TOTAL']:.2%}
 {point_str}
+{my_str}
 ```
 """
     return msg
