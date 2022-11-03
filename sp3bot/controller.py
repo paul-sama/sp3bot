@@ -11,7 +11,7 @@ from .botdecorator import check_user_handler, check_session_handler
 from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink
-from .msg import get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics
+from .msg import get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_stage_record
 
 
 @check_user_handler
@@ -255,6 +255,15 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
     coop = splt.get_coop_summary()
     msg = get_summary(res, all_res, coop, lang=user.acc_loc)
     logger.debug(msg)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
+
+
+@check_session_handler
+async def stage_record(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = get_or_set_user(user_id=update.effective_user.id)
+    splt = Splatoon(update.effective_user.id, user.session_token)
+    msg = get_stage_record(splt)
+    # logger.debug(msg)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 
 

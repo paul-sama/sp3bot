@@ -210,6 +210,7 @@ def get_summary(data, all_data, coop, lang='zh-CN'):
 {s_time:%Y-%m-%d %H:%M:%S} +08:00
 {coop_msg}
 ```
+/stage\_record
 """
     return msg
 
@@ -280,4 +281,25 @@ WIN_RATE: {data['WIN'] / data['TOTAL']:.2%}
 {my_str}
 ```
 """
+    return msg
+
+
+def get_stage_record(splt):
+    data = utils.gen_graphql_body('56c46bdbdfa4519eaf7845ce9f3cd67a')
+    res = splt._request(data, skip_check_token=True)
+    if not res:
+        return '`Error`'
+    stages = res['data']['stageRecords']['nodes']
+    str_list = []
+    for s in stages:
+        str_stage = f'''{s['name']}
+{s['stats']['winRateAr'] or 0:>7.2%} {s['stats']['winRateLf'] or 0:>7.2%} {s['stats']['winRateGl'] or 0:>7.2%} {s['stats']['winRateCl'] or 0:>7.2%}
+'''
+        str_list.append(str_stage)
+
+    msg = f'''
+```
+{''.join(str_list)}
+```
+ '''
     return msg
