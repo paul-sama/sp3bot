@@ -326,7 +326,10 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
     get_or_set_user(user_id=chat_id, user_info=user_info, push_cnt=0)
     splt = Splatoon(chat_id, user.session_token)
     msg = get_last_msg(splt, battle_id, _info, is_battle, **data)
-    await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode='Markdown')
+    try:
+        await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode='Markdown')
+    except Exception as e:
+        logger.error(f'{user.id}, {user.username} push_latest_battle: {e}')
 
 
 async def stop_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -427,5 +430,5 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
                         logger.bind(cron=True).debug(f"send message: {ret.text}")
                         break
                 except Exception as e:
-                    logger.bind(cron=True).exception(f"post_battle_to_stat_ink: {e}")
+                    logger.bind(cron=True).error(f"post_battle_to_stat_ink: {e}")
                     time.sleep(5)
