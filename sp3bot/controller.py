@@ -253,7 +253,7 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
     res = splt.get_summary()
     all_res = splt.get_all_res()
     coop = splt.get_coop_summary()
-    msg = get_summary(res, all_res, coop)
+    msg = get_summary(res, all_res, coop, lang=user.acc_loc)
     logger.debug(msg)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 

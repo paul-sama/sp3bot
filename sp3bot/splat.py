@@ -104,7 +104,7 @@ class Splatoon:
         return res
 
     def get_summary(self, skip_check_token=False):
-        data = utils.gen_graphql_body('29957cf5d57b893934de857317cd46d8')
+        data = utils.gen_graphql_body('9d4ef9fba3f84d6933bb1f6f436f7200')
         res = self._request(data, skip_check_token)
         return res
 

@@ -160,7 +160,17 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     return msg
 
 
-def get_summary(data, all_data, coop):
+def get_summary(data, all_data, coop, lang='zh-CN'):
+    if lang == 'en-US':
+        lang = 'en-GB'
+
+    cur_path = os.path.dirname(os.path.abspath(__file__))
+    i18n_path = f'{cur_path}/i18n/{lang}.json'
+    if not os.path.exists(i18n_path):
+        i18n_path = f'{cur_path}/i18n/zh-CN.json'
+    with open(i18n_path, 'r', encoding='utf-8') as f:
+        dict_lang = json.loads(f.read())
+
     player = data['data']['currentPlayer']
     history = data['data']['playHistory']
     start_time = history['gameStartTime']
@@ -178,25 +188,26 @@ def get_summary(data, all_data, coop):
         name = f"{coop['regularGrade']['name']} {coop['regularGradePoint']}"
         coop_msg = f"""
 {name}
-现有点数: {card['regularPoint']}
-打工次数: {card['playCount']}
-已收集的金鲑鱼卵: {card['goldenDeliverCount']}
-已收集的鲑鱼卵: {card['deliverCount']}
-已击倒的头目鲑鱼: {card['defeatBossCount']}
-救援次数: {card['rescueCount']}
-累计点数: {card['totalPoint']}
-鳞片: 🥉{p['bronze']} 🥈{p['silver']} 🏅️{p['gold']}
+{dict_lang['CoopHistory.regular_point']}: {card['regularPoint']}
+{dict_lang['CoopHistory.play_count']}: {card['playCount']}
+{dict_lang['CoopHistory.golden_deliver_count']}: {card['goldenDeliverCount']}
+{dict_lang['CoopHistory.deliver_count']}: {card['deliverCount']}
+{dict_lang['CoopHistory.defeat_boss_count']}: {card['defeatBossCount']}
+{dict_lang['CoopHistory.rescue_count']}: {card['rescueCount']}
+{dict_lang['CoopHistory.total_point']}: {card['totalPoint']}
+{dict_lang['CoopHistory.scale']}: 🥉{p['bronze']} 🥈{p['silver']} 🏅️{p['gold']}
 """
 
     msg = f"""
 ```
 {player['name']} #{player['nameId']}
 {player['byname']}
-最高技术: {history['udemaeMax']}
-总胜利数: {history['winCountTotal']}{all_cnt}
-至今为止的涂墨面积: {history['paintPointTotal']:,}p
-徽章: {len(history['badges'])}
-开始游玩时间: {s_time:%Y-%m-%d %H:%M:%S}
+{dict_lang['History.rank']}: {history['rank']}
+{dict_lang['History.highest_udemae']}: {history['udemaeMax']}
+{dict_lang['History.total_win']}: {history['winCountTotal']}{all_cnt}
+{dict_lang['History.total_turf_point']}: {history['paintPointTotal']:,}p
+{dict_lang['History.badge']}: {len(history['badges'])}
+{s_time:%Y-%m-%d %H:%M:%S} +08:00
 {coop_msg}
 ```
 """
