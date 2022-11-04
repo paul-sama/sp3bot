@@ -59,3 +59,10 @@ def check_session_handler(func):
         return result
 
     return wrapper
+
+
+async def send_bot_msg(ctx, **kwargs):
+    try:
+        await ctx.bot.send_message(**kwargs)
+    except Exception as e:
+        logger.error(f'send_bot_msg: {kwargs}\n{e}')

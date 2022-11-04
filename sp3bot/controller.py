@@ -7,7 +7,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from loguru import logger
 from telegram.ext import ContextTypes
 from .model import show_schedule, show_coop, show_mall
-from .botdecorator import check_user_handler, check_session_handler
+from .botdecorator import check_user_handler, check_session_handler, send_bot_msg
 from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink
@@ -16,7 +16,7 @@ from .msg import get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_static
 
 @check_user_handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="""
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text="""
 I'm a bot for splatoon3, please select the function you want to use:
 /help show more
    """)
@@ -24,7 +24,7 @@ I'm a bot for splatoon3, please select the function you want to use:
 
 @check_user_handler
 async def help_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="""
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text="""
 /start - start the bot
 /schedule - show the schedule
 /full_schedule - show the full schedule
@@ -92,7 +92,7 @@ Log in, right click the "Select this account" button, copy the link address, and
 /set_token the_link_address
 """
         logger.info(msg)
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, disable_web_page_preview=True)
+        await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, disable_web_page_preview=True)
 
 
 async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -101,22 +101,22 @@ async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
     token = text[10:]
     logger.info(f'{update.effective_user.username} set_token: {token}')
     if not token:
-        await context.bot.send_message(chat_id=update.effective_chat.id,
-                                       text="Please past the link address after /set_token")
+        await send_bot_msg(context, chat_id=update.effective_chat.id,
+                           text="Please past the link address after /set_token")
         return
 
     try:
         auth_code_verifier = context.user_data['auth_code_verifier']
     except KeyError:
-        await context.bot.send_message(chat_id=update.effective_chat.id,
-                                       text="set token failed, please try again. /login")
+        await send_bot_msg(context, chat_id=update.effective_chat.id,
+                           text="set token failed, please try again. /login")
         return
 
     logger.info(f'auth_code_verifier: {auth_code_verifier}')
     session_token = login_2(use_account_url=token, auth_code_verifier=auth_code_verifier)
     if session_token == 'skip':
         msg = 'set token failed, please try again. /login'
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+        await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg)
         return
     logger.info(f'session_token: {session_token}')
     user = get_or_set_user(user_id=update.effective_user.id, session_token=session_token)
@@ -128,7 +128,7 @@ Set token success! Bot now can get your splatoon3 data from SplatNet.
 /last - show the latest battle or coop
 /start_push - start push mode
 """
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg)
 
     user = get_or_set_user(user_id=user_id)
     Splatoon(user_id, user.session_token).set_gtoken_and_bullettoken()
@@ -179,8 +179,7 @@ async def set_api_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except IndexError:
         msg = '''Please copy you api_key from https://stat.ink/profile then paste after
 /set_api_key your_api_key'''
-        await context.bot.send_message(chat_id=update.effective_chat.id,
-                                       text=msg, disable_web_page_preview=True)
+        await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, disable_web_page_preview=True)
         return
     logger.info(f'set_api_key: {api_key}')
 
@@ -189,7 +188,7 @@ async def set_api_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = f'''set_api_key success, bot will check every 3 hours and post your data to stat.ink.
 first sync will be in minutes.
     '''
-    await context.bot.send_message(chat_id=user_id, text=msg)
+    await send_bot_msg(context, chat_id=user_id, text=msg)
 
     # sync data immediately
     context.job_queue.run_once(crontab_job, 1, data={'user_id': user_id})
@@ -245,8 +244,7 @@ def get_last_msg(splt, _id, extra_info, is_battle=True, **kwargs):
 async def last(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     msg = await get_last_battle_or_coop(user_id)
-    if msg:
-        await context.bot.send_message(chat_id=user_id, text=msg, parse_mode='Markdown')
+    await send_bot_msg(context, chat_id=user_id, text=msg, parse_mode='Markdown')
 
 
 @check_session_handler
@@ -258,7 +256,7 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
     coop = splt.get_coop_summary()
     msg = get_summary(res, all_res, coop, lang=user.acc_loc)
     logger.debug(msg)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 
 
 @check_session_handler
@@ -267,7 +265,7 @@ async def stage_record(update: Update, context: ContextTypes.DEFAULT_TYPE):
     splt = Splatoon(update.effective_user.id, user.session_token)
     msg = get_stage_record(splt)
     # logger.debug(msg)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 
 
 @check_session_handler
@@ -277,7 +275,7 @@ async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user.push:
         # if /start_push again, set push_cnt 0
         get_or_set_user(user_id=chat_id, push=True, push_cnt=0)
-        await context.bot.send_message(chat_id=chat_id, text='You have already started push. /stop_push to stop')
+        await send_bot_msg(context, chat_id=chat_id, text='You have already started push. /stop_push to stop')
         return
     get_or_set_user(user_id=chat_id, push=True, push_cnt=0)
     current_statics = defaultdict(int)
@@ -288,7 +286,7 @@ async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
         data=dict(current_statics=current_statics),
         job_kwargs=dict(misfire_grace_time=9, coalesce=False, max_instances=3))
     msg = f'Start push! check new data(battle or coop) every {INTERVAL} seconds. /stop_push to stop'
-    await context.bot.send_message(chat_id=chat_id, text=msg)
+    await send_bot_msg(context, chat_id=chat_id, text=msg)
 
 
 async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
@@ -320,19 +318,16 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
                 if data.get('current_statics'):
                     msg += get_statics(data['current_statics'])
                 logger.info(f'{user.username}, {msg}')
-                await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode='Markdown')
+                await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
                 return
             return
 
-    logger.info(f'{user.username} get new battle!')
+    logger.info(f'{user.id}, {user.username} get new {"battle" if is_battle else "coop"}!')
     user_info = json.dumps({'battle_id': battle_id})
     get_or_set_user(user_id=chat_id, user_info=user_info, push_cnt=0)
     splt = Splatoon(chat_id, user.session_token)
     msg = get_last_msg(splt, battle_id, _info, is_battle, **data)
-    try:
-        await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode='Markdown')
-    except Exception as e:
-        logger.error(f'{user.id}, {user.username} push_latest_battle: {e}')
+    await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
 
 
 async def stop_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -350,7 +345,7 @@ async def stop_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if job.name == str(chat_id):
             job.schedule_removal()
             logger.info(f'job: {job.name}, {chat_id} removed')
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 
 
 @check_user_handler
@@ -370,7 +365,7 @@ user_info: {user.user_info}
 ```
 /clear\_db\_info  clear your data
     """
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='MarkdownV2')
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='MarkdownV2')
 
 
 @check_user_handler
@@ -387,7 +382,7 @@ async def clear_db_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_info=None,
     )
     msg = "All your data cleared!"
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg)
 
 
 async def check_push_job(context: ContextTypes.DEFAULT_TYPE):
