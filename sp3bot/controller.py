@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import time
 from collections import defaultdict
 from datetime import datetime as dt
@@ -76,6 +77,13 @@ async def unknown_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        img_path = f'{dir_path}/screenshots/sp3bot-login.gif'
+        await context.bot.send_animation(chat_id=update.effective_chat.id, animation=open(img_path, 'rb'))
+    except Exception as e:
+        logger.error(e)
+
     logger.info(f'login: {update.effective_user.username}')
     url, auth_code_verifier = log_in(A_VERSION)
     context.user_data['auth_code_verifier'] = auth_code_verifier
@@ -83,9 +91,6 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f'auth_code_verifier: {auth_code_verifier}')
     if url:
         msg = f"""
-Make sure you have fully read the "Token generation" section of the s3s's readme before proceeding.
-https://github.com/frozenpandaman/s3s#token-generation-
-
 Navigate to this URL in your browser:
 {url}
 Log in, right click the "Select this account" button, copy the link address, and input:
