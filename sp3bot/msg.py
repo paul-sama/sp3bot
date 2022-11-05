@@ -303,3 +303,38 @@ def get_stage_record(splt):
 ```
  '''
     return msg
+
+
+def get_my_schedule(splt):
+    data = utils.gen_graphql_body('7d4bb0565342b7385ceb97d109e14897')
+    res = splt._request(data)
+    if not res:
+        return 'No schedule found!'
+
+    data = utils.gen_graphql_body('56c46bdbdfa4519eaf7845ce9f3cd67a')
+    stage_record = splt._request(data, skip_check_token=True)
+    dict_stage = {}
+    for s in stage_record['data']['stageRecords']['nodes']:
+        dict_stage[s['id']] = {
+            'VnNSdWxlLTE=': s['stats']['winRateAr'],
+            'VnNSdWxlLTI=': s['stats']['winRateLf'],
+            'VnNSdWxlLTM=': s['stats']['winRateGl'],
+            'VnNSdWxlLTQ=': s['stats']['winRateCl'],
+        }
+
+    text = ''
+    for node in res['data']['bankaraSchedules']['nodes'][:4]:
+        s = node['bankaraMatchSettings']
+        c_rule_id = s[0]['vsRule']['id']
+        c_stage_1, c_stage_2 = s[0]['vsStages']
+        o_rule_id = s[1]['vsRule']['id']
+        o_stage_1, o_stage_2 = s[1]['vsStages']
+        row = f'''CHALLENGE: {s[0]['vsRule']['name']} ({dict_stage[c_stage_1['id']][c_rule_id] or 0:.2%}, {dict_stage[c_stage_2['id']][c_rule_id] or 0:.2%})
+{c_stage_1['name']}, {c_stage_2['name']}
+OPEN: {s[1]['vsRule']['name']} ({dict_stage[o_stage_1['id']][o_rule_id] or 0:.2%}, {dict_stage[o_stage_2['id']][o_rule_id] or 0:.2%})
+{o_stage_1['name']}, {o_stage_2['name']}
+
+'''
+        text += row
+    msg = f'```\n{text}```'
+    return msg

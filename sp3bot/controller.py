@@ -12,7 +12,7 @@ from .botdecorator import check_user_handler, check_session_handler, send_bot_ms
 from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink
-from .msg import get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_stage_record
+from .msg import get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_stage_record, get_my_schedule
 
 
 @check_user_handler
@@ -34,6 +34,7 @@ async def help_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /help - show this help message
 /login - login
 /set_lang - set language
+/my_schedule - my schedule
 /me - show your info
 /last - show the last battle or coop
 /start_push - start push mode
@@ -52,6 +53,14 @@ async def schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @check_user_handler
 async def full_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=show_schedule(True), parse_mode='Markdown')
+
+
+@check_session_handler
+async def my_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = get_or_set_user(user_id=user_id)
+    splt = Splatoon(user_id, user.session_token)
+    await send_bot_msg(context, chat_id=user_id, text=get_my_schedule(splt), parse_mode='Markdown')
 
 
 @check_user_handler
