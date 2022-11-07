@@ -107,6 +107,7 @@ def post_battle_to_stat_ink(**kwargs):
 		cmd = f'git clone https://github.com/frozenpandaman/s3s {s3s_folder}'
 		rtn = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE).stdout.decode('utf-8')
 		logger.bind(cron=True).debug(f'cli: {rtn}')
+		os.chdir(s3s_folder)
 	else:
 		os.chdir(s3s_folder)
 		cmd = f'git pull'
@@ -186,6 +187,7 @@ def post_battle_to_stat_ink_s3si_ts(**kwargs):
 		cmd = f'git clone https://github.com/spacemeowx2/s3si.ts {s3s_folder}'
 		rtn = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE).stdout.decode('utf-8')
 		logger.bind(cron=True).debug(f'cli: {rtn}')
+		os.chdir(s3s_folder)
 	else:
 		os.chdir(s3s_folder)
 		os.system('git restore .')
