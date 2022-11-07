@@ -11,7 +11,7 @@ from .model import show_schedule, show_coop, show_mall
 from .botdecorator import check_user_handler, check_session_handler, send_bot_msg
 from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
-from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink
+from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink, post_battle_to_stat_ink_s3si_ts
 from .msg import (
     get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_weapon_record, get_stage_record,
     get_my_schedule
@@ -443,8 +443,8 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
             continue
         u_id = u.id
         logger.bind(cron=True).debug(f"get user: {u.username}, have api_key: {u.api_key}")
-        res = post_battle_to_stat_ink(user_id=u_id, session_token=u.session_token,
-                                      api_key=u.api_key, acc_loc=u.acc_loc)
+        res = post_battle_to_stat_ink_s3si_ts(user_id=u_id, session_token=u.session_token,
+                                              api_key=u.api_key, acc_loc=u.acc_loc)
         if res:
             chat_id = u.id
             msg = f'push {res[0]} battles to stat.ink\n{res[1]}'
