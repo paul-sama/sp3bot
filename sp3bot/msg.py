@@ -160,7 +160,7 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     return msg
 
 
-def get_summary(data, all_data, coop, lang='zh-CN'):
+def get_dict_lang(lang):
     if lang == 'en-US':
         lang = 'en-GB'
 
@@ -170,6 +170,11 @@ def get_summary(data, all_data, coop, lang='zh-CN'):
         i18n_path = f'{cur_path}/i18n/zh-CN.json'
     with open(i18n_path, 'r', encoding='utf-8') as f:
         dict_lang = json.loads(f.read())
+    return dict_lang
+
+
+def get_summary(data, all_data, coop, lang='zh-CN'):
+    dict_lang = get_dict_lang(lang)
 
     player = data['data']['currentPlayer']
     history = data['data']['playHistory']
@@ -210,6 +215,7 @@ def get_summary(data, all_data, coop, lang='zh-CN'):
 {s_time:%Y-%m-%d %H:%M:%S} +08:00
 {coop_msg}
 ```
+/weapon\_record
 /stage\_record
 """
     return msg
@@ -281,6 +287,36 @@ WIN_RATE: {data['WIN'] / data['TOTAL']:.2%}
 {my_str}
 ```
 """
+    return msg
+
+
+def get_weapon_record(splt, lang='zh-CN'):
+    dict_lang = get_dict_lang(lang)
+    data = utils.gen_graphql_body('a0c277c719b758a926772879d8e53ef8')
+    res = splt._request(data, skip_check_token=True)
+    if not res:
+        return '`Error`'
+    weapons = res['data']['weaponRecords']['nodes']
+    str_list = []
+    for w in weapons:
+        if not w.get('stats'):
+            continue
+        st = w['stats']
+        str_s = '⭐'*st['level']
+        str_next = ''
+        if st.get('expToLevelUp'):
+            str_next = f'({st["expToLevelUp"]})'
+        str_weapon = f'''{w['name']} {str_s}{str_next}
+{dict_lang['Record.win_count']}: {st['win']:<4} {dict_lang['Record.vibes']}: {st['vibes']:<5.1f} {dict_lang['Record.turf_point']}: {st['paint']:,}p\n
+'''
+        str_list.append(str_weapon)
+
+    msg = f'''
+```
+{''.join(str_list)}
+```
+ '''
+    logger.info(msg)
     return msg
 
 
