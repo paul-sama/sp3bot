@@ -211,7 +211,7 @@ def post_battle_to_stat_ink_s3si_ts(**kwargs):
 
 	# edit agent
 	cmd_list = [
-		"""sed -i "1,5s/s3si.ts[^,]*\"/s3si.ts - t.me\/splatoon3_bot\"/g" ./src/constant.ts""",
+		"""sed -i "1,5s/s3si.ts/s3si.ts - t.me\/splatoon3_bot/g" ./src/constant.ts""",
 	]
 	for cmd in cmd_list:
 		logger.bind(cron=True).debug(f'cli: {cmd}')
