@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import time
 import functools
 from loguru import logger
-from telegram import Update
+from telegram import Update, Message
 from .db import get_or_set_user
 
 
@@ -66,3 +67,15 @@ async def send_bot_msg(ctx, **kwargs):
         await ctx.bot.send_message(**kwargs)
     except Exception as e:
         logger.error(f'send_bot_msg: {kwargs}\n{e}')
+
+        retry = 5
+        while retry > 0:
+            try:
+                x = await ctx.bot.send_message(**kwargs)
+                if isinstance(x, Message):
+                    logger.info(f'send success {abs(retry - 6)}: {x.message_id}')
+                    break
+            except Exception as e:
+                logger.error(f'retry failed')
+                retry -= 1
+                time.sleep(1 + abs(retry - 5) * 5)
