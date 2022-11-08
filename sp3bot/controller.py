@@ -174,18 +174,24 @@ async def set_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         [InlineKeyboardButton(i[0], callback_data=i[1])] for i in all_lang
     ]
 
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Please set your language, default[Chinese (China)]:", reply_markup=reply_markup)
+    try:
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text("Please set your language, default[Chinese (China)]:", reply_markup=reply_markup)
+    except Exception as e:
+        logger.error(e)
 
 
 async def lang_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Parses the CallbackQuery and updates the message text."""
-    query = update.callback_query
+    try:
+        query = update.callback_query
 
-    await query.answer()
-    lang = query.data
-    get_or_set_user(user_id=update.effective_user.id, acc_loc=lang)
-    await query.edit_message_text(text=f"Set language Success! {lang}")
+        await query.answer()
+        lang = query.data
+        get_or_set_user(user_id=update.effective_user.id, acc_loc=lang)
+        await query.edit_message_text(text=f"Set language Success! {lang}")
+    except Exception as e:
+        logger.error(e)
 
 
 @check_session_handler
