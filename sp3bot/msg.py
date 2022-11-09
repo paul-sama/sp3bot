@@ -47,6 +47,7 @@ def get_row_text(p):
 def get_point(**kwargs):
     try:
         point = 0
+        b_process = ''
         bankara_match = kwargs.get('bankara_match')
         if not bankara_match:
             return point
@@ -65,22 +66,24 @@ def get_point(**kwargs):
             bankara_info = splt._request(data, skip_check_token=True)
             hg = bankara_info['data']['bankaraBattleHistories']['historyGroups']['nodes'][0]
             point = hg['bankaraMatchChallenge']['earnedUdemaePoint'] or 0
-            bankara_detail = hg['bankaraMatchChallenge']
+            bankara_detail = hg['bankaraMatchChallenge'] or {}
             if point > 0:
                 point = f'+{point}'
             if point == 0 and bankara_detail and (
                     len(hg['historyDetails']['nodes']) == 1 and
-                    bankara_detail.get('maxWinCount') == 5 and
                     bankara_detail.get('winCount') + bankara_detail.get('loseCount') == 1):
                 # first battle, open ticket
                 udemae = b_info.get('udemae') or ''
                 point = DICT_RANK_POINT.get(udemae[:2], 0)
 
+            b_process = f"{bankara_detail.get('winCount') or 0}-{bankara_detail.get('loseCount') or 0}"
+
     except Exception as e:
         logger.exception(e)
         point = 0
+        b_process = ''
 
-    return point
+    return point, b_process
 
 
 def set_statics(**kwargs):
@@ -126,7 +129,7 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     battle_detail = battle_detail['data']['vsHistoryDetail']
     bankara_match = ((battle_detail or {}).get('bankaraMatch') or {}).get('mode') or ''
 
-    point = get_point(bankara_match=bankara_match, b_info=b_info, splt=kwargs.get('splt'))
+    point, b_process = get_point(bankara_match=bankara_match, b_info=b_info, splt=kwargs.get('splt'))
     if bankara_match:
         bankara_match = f'({bankara_match})'
     str_point = f'{point}p' if point else ''
@@ -140,7 +143,7 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
         text_list.append('\n')
     msg += ''.join(text_list)
 
-    msg += f"`duration: {battle_detail['duration']}s, knockout: {battle_detail['knockout']}`"
+    msg += f"`duration: {battle_detail['duration']}s, knockout: {battle_detail['knockout']} {b_process}`"
 
     succ = 0
     if 'current_statics' in kwargs:
