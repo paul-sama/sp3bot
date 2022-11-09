@@ -75,7 +75,7 @@ class Splatoon:
                                 headers=self.headbutt(self.bullet_token), cookies=dict(_gtoken=self.gtoken))
             logger.debug(f'_request: {time.time() - t:.3f}s')
             if res.status_code != 200:
-                logger.info('tokens have expired.')
+                logger.info(f'{self.user_id} tokens expired.')
                 self.set_gtoken_and_bullettoken()
             else:
                 return res.json()
