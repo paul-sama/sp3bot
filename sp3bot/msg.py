@@ -50,7 +50,7 @@ def get_point(**kwargs):
         b_process = ''
         bankara_match = kwargs.get('bankara_match')
         if not bankara_match:
-            return point
+            return point, ''
 
         b_info = kwargs['b_info']
 
