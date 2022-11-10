@@ -354,6 +354,8 @@ def get_my_schedule(splt):
     stage_record = splt._request(data, skip_check_token=True)
     dict_stage = {}
     for s in stage_record['data']['stageRecords']['nodes']:
+        if not s or not s.get('stats'):
+            continue
         dict_stage[s['id']] = {
             'VnNSdWxlLTE=': s['stats']['winRateAr'],
             'VnNSdWxlLTI=': s['stats']['winRateLf'],
