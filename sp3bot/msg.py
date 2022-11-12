@@ -126,13 +126,30 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     mode = b_info['vsMode']['mode']
     rule = b_info['vsRule']['name']
     judgement = b_info['judgement']
-    battle_detail = battle_detail['data']['vsHistoryDetail']
+    battle_detail = battle_detail['data']['vsHistoryDetail'] or {}
     bankara_match = ((battle_detail or {}).get('bankaraMatch') or {}).get('mode') or ''
 
     point, b_process = get_point(bankara_match=bankara_match, b_info=b_info, splt=kwargs.get('splt'))
     if bankara_match:
         bankara_match = f'({bankara_match})'
     str_point = f'{point}p' if point else ''
+    if mode == 'FEST':
+        mode_id = b_info['vsMode']['id']
+        bankara_match = '(CHALLENGE)'
+        if mode_id == 'VnNNb2RlLTY=':
+            bankara_match = '(OPEN)'
+        elif mode_id == 'VnNNb2RlLTg=':
+            bankara_match = '(TRI_COLOR)'
+        fest_match = battle_detail.get('festMatch') or {}
+        contribution = fest_match.get('contribution')
+        if contribution:
+            str_point = f'+{contribution}'
+        if fest_match.get('dragonMatchType') == 'DECUPLE':
+            rule += ' (x10)'
+        elif fest_match.get('dragonMatchType') == 'DRAGON':
+            rule += ' (x100)'
+        elif fest_match.get('dragonMatchType') == 'DOUBLE_DRAGON':
+            rule += ' (x333)'
     msg = f"`{mode}{bankara_match} {rule} {judgement} {b_info.get('udemae') or ''} {str_point}`\n"
 
     text_list = []
@@ -140,7 +157,10 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     for team in sorted(teams, key=lambda x: x['order']):
         for p in team['players']:
             text_list.append(get_row_text(p))
-        text_list.append('\n')
+        ti = ''
+        if mode == 'FEST':
+            ti = f"`{team['result']['paintRatio']:.2%}  {team['festTeamName']}`"
+        text_list.append(f'{ti}\n')
     msg += ''.join(text_list)
 
     msg += f"`duration: {battle_detail['duration']}s, knockout: {battle_detail['knockout']} {b_process}`"
@@ -159,6 +179,11 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     dict_a = {'GOLD': '🏅️', 'SILVER': '🥈', 'BRONZE': '🥉'}
     award_list = [f"{dict_a.get(a['rank'], '')}`{a['name']}`" for a in battle_detail['awards']]
     msg += ('\n ' + '\n '.join(award_list) + '\n')
+    if mode == 'FEST':
+        fest_power = (battle_detail.get('festMatch') or {}).get('myFestPower')
+        msg += f'\n`{b_info["player"]["festGrade"]}`'
+        if fest_power:
+            msg += f' ({fest_power:.2f})'
     # print(msg)
     return msg
 
