@@ -53,10 +53,9 @@ def get_row_text(p):
     # name = p['name'].replace('`', '\\`') .replace("_", "\\_").replace("*", "\\*").replace("[", "\\[")
     name = p['name'].replace('`', '`\``')
     t = f"`{ak:>2}{k_str:>5}k {d:>2}d{ration:>4.1f}{re['special']:>3}sp {p['paint']:>4}p {name}`\n"
-    # if p['isMyself']:
-    #     t = '  ------------>  ' + t.strip()
-    #     if ak > 9:
-    #         t = t.replace('->', '>')
+    if p.get('isMyself'):
+        t = t.strip().replace('`', '').replace(name, '')
+        t = f"`{t}` *{name}*\n"
     return t
 
 
