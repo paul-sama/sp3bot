@@ -320,13 +320,20 @@ async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
     logger.debug(f'push_latest_battle: {context.job.name}')
     chat_id = context.job.chat_id
+
+    user = get_or_set_user(user_id=chat_id)
+    if not user or user.push is False:
+        logger.info(f'stop by user clear db: {context.job.name} stop')
+        context.job.schedule_removal()
+        return
+
     data = context.job.data or {}
     res = await get_last_battle_or_coop(chat_id, for_push=True)
     if not res:
+        logger.info('no new battle or coop')
         return
     battle_id, _info, is_battle = res
 
-    user = get_or_set_user(user_id=chat_id)
     if user.user_info:
         user_info = json.loads(user.user_info)
         last_battle_id = user_info.get('battle_id')
