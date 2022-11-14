@@ -442,7 +442,8 @@ def get_fest_record(splt, lang='zh-CN'):
                                 str_top = f"{dict_lang['FesRecord.fest_ranking']}: #{n['rank']}"
                                 break
                     str_detail += f'{str_top}'
-        str_stage = f'''{s['title']}({s['myTeam']['teamName']})
+        str_stage = f'''{s['startTime'][:10].replace('-', '/')}-{s['endTime'][8:10]}
+{s['title']}({s['myTeam']['teamName']})
 {teams}
 {str_detail}
 
