@@ -3,7 +3,7 @@ from telegram.ext import filters, MessageHandler, ApplicationBuilder, ContextTyp
 from .controller import (
     start, help_msg, schedule, full_schedule, coop_schedule, mall, unknown, unknown_text, set_token, login, last,
     start_push, stop_push, set_api_key, show_db_info, clear_db_info, crontab_job, me, check_push_job,
-    set_lang, lang_button, weapon_record, stage_record, my_schedule
+    set_lang, lang_button, weapon_record, stage_record, fest_record, my_schedule
 )
 from configs import TELEGRAM_BOT_TOKEN
 
@@ -27,6 +27,7 @@ def main():
     application.add_handler(CommandHandler('me', me))
     application.add_handler(CommandHandler('weapon_record', weapon_record))
     application.add_handler(CommandHandler('stage_record', stage_record))
+    application.add_handler(CommandHandler('fest_record', fest_record))
     application.add_handler(CommandHandler('last', last))
     application.add_handler(CommandHandler('start_push', start_push))
     application.add_handler(CommandHandler('stop_push', stop_push))

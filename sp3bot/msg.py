@@ -277,6 +277,7 @@ def get_summary(data, all_data, coop, lang='zh-CN'):
 ```
 /weapon\_record
 /stage\_record
+/fest\_record
 """
     return msg
 
@@ -389,6 +390,62 @@ def get_stage_record(splt):
     for s in stages:
         str_stage = f'''{s['name']}
 {s['stats']['winRateAr'] or 0:>7.2%} {s['stats']['winRateLf'] or 0:>7.2%} {s['stats']['winRateGl'] or 0:>7.2%} {s['stats']['winRateCl'] or 0:>7.2%}
+'''
+        str_list.append(str_stage)
+
+    msg = f'''
+```
+{''.join(str_list)}
+```
+ '''
+    return msg
+
+
+def get_fest_record(splt, lang='zh-CN'):
+    dict_lang = get_dict_lang(lang)
+    res = splt._request(utils.gen_graphql_body('44c76790b68ca0f3da87f2a3452de986'), skip_check_token=True)
+    if not res:
+        return '`Error`'
+    records = res['data']['festRecords']['nodes']
+    str_list = []
+    for s in records:
+        fest_id = s['id']
+        teams = ', '.join((f"{i['teamName']}{'🏆' if i['result']['isWinner'] else ''}" for i in s['teams']))
+
+        _d = utils.gen_graphql_body('2d661988c055d843b3be290f04fb0db9', varname='festId', varvalue=fest_id)
+        fes_detail = splt._request(_d, skip_check_token=True)
+        str_detail = ''
+        if fes_detail:
+            p_r = ((fes_detail.get('data') or {}).get("fest") or {}).get('playerResult') or {}
+            if p_r:
+                max_power = p_r.get('maxFestPower') or 0
+                avg = dict_lang['FesRecord.average']
+                ttl = dict_lang['FesRecord.total']
+                str_detail = f'''{p_r.get('grade')}
+{dict_lang['FesRecord.got_horagai']}: {p_r.get('horagai') or 0}
+{dict_lang['FesRecord.contribution_regular']}: {avg} {p_r.get('regularContributionAverage') or 0}, {ttl} {p_r.get('regularContributionTotal') or 0}
+{dict_lang['FesRecord.contribution_challenge']}: {avg} {p_r.get('challengeContributionAverage') or 0}, {ttl} {p_r.get('challengeContributionTotal') or 0}
+{dict_lang['FesRecord.highest_fest_power']}: {max_power:.1f}
+'''
+                str_top = ''
+                if max_power:
+                    my_name = fes_detail['data']['currentPlayer']['name']
+                    my_team = fes_detail['data']['fest']['myTeam']['teamName']
+                    _d = utils.gen_graphql_body('58bdd28e3cf71c3bf38bc45836ee1e96', varname='festId', varvalue=fest_id)
+                    top_res = splt._request(_d, skip_check_token=True)
+
+                    for t in top_res['data']['fest']['teams']:
+                        if t['teamName'] != my_team:
+                            continue
+                        for n in t['result']['rankingHolders']['nodes']:
+                            if n['name'] == my_name and int(max_power) == int(n['festPower']):
+                                str_top = f"{dict_lang['FesRecord.fest_ranking']}: #{n['rank']}"
+                                break
+                    str_detail += f'{str_top}'
+        str_stage = f'''{s['title']}({s['myTeam']['teamName']})
+{teams}
+{str_detail}
+
 '''
         str_list.append(str_stage)
 

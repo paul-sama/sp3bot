@@ -14,7 +14,7 @@ from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink, post_battle_to_stat_ink_s3si_ts
 from .msg import (
     MSG_HELP, get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_weapon_record, get_stage_record,
-    get_my_schedule
+    get_my_schedule, get_fest_record
 )
 
 
@@ -284,6 +284,15 @@ async def stage_record(update: Update, context: ContextTypes.DEFAULT_TYPE):
     splt = Splatoon(update.effective_user.id, user.session_token)
     msg = get_stage_record(splt)
     # logger.debug(msg)
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
+
+
+@check_session_handler
+async def fest_record(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = get_or_set_user(user_id=update.effective_user.id)
+    splt = Splatoon(update.effective_user.id, user.session_token)
+    msg = get_fest_record(splt, lang=user.acc_loc)
+    logger.debug(msg)
     await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 
 
