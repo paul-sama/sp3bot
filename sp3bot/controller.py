@@ -13,10 +13,9 @@ from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink, post_battle_to_stat_ink_s3si_ts
 from .msg import (
-    get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_weapon_record, get_stage_record,
+    MSG_HELP, get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_weapon_record, get_stage_record,
     get_my_schedule
 )
-
 
 
 @check_user_handler
@@ -29,24 +28,7 @@ I'm a bot for splatoon3, please select the function you want to use:
 
 @check_user_handler
 async def help_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await send_bot_msg(context, chat_id=update.effective_chat.id, text="""
-/start - start the bot
-/schedule - show the schedule
-/full_schedule - show the full schedule
-/coop_schedule - show the coop schedule
-/mall - show the mall
-/help - show this help message
-/login - login
-/set_lang - set language
-/my_schedule - my schedule
-/me - show your info
-/last - show the last battle or coop
-/start_push - start push mode
-/set_api_key - set stat.ink api_key
-/show_db_info - show db info
-
-source code: https://github.com/paul-sama/sp3bot
-    """, disable_web_page_preview=True)
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=MSG_HELP)
 
 
 @check_user_handler
@@ -140,8 +122,8 @@ async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_or_set_user(user_id=update.effective_user.id, session_token=session_token)
     msg = f"""
 Set token success! Bot now can get your splatoon3 data from SplatNet.
-/set_lang - set language
-/set_api_key - set stat.ink api_key, bot will sync your battles to stat.ink
+/set_lang - set language, default(zh-CN) 默认中文
+/set_api_key - set stat.ink api_key, bot will sync your data to stat.ink
 /me - show your info
 /last - show the latest battle or coop
 /start_push - start push mode

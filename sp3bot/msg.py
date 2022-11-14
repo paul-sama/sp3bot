@@ -25,6 +25,22 @@ DICT_RANK_POINT = {
 }
 
 
+MSG_HELP = """
+/login - login
+/me - show your info
+/last - show the last battle or coop
+/start_push - start push mode
+/my_schedule - my schedule
+
+settings:
+/set_lang - set language, default(zh-CN) 默认中文
+/set_api_key - set stat.ink api_key for post data
+/show_db_info - show db info
+
+/help - show this help message
+"""
+
+
 def get_row_text(p):
     re = p['result']
     if not re:
