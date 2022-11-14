@@ -124,34 +124,14 @@ def set_statics(**kwargs):
 
 def get_battle_msg(b_info, battle_detail, **kwargs):
     mode = b_info['vsMode']['mode']
-    rule = b_info['vsRule']['name']
     judgement = b_info['judgement']
     battle_detail = battle_detail['data']['vsHistoryDetail'] or {}
-    bankara_match = ((battle_detail or {}).get('bankaraMatch') or {}).get('mode') or ''
+    title, point, b_process = get_battle_msg_title(b_info, battle_detail, **kwargs)
 
-    point, b_process = get_point(bankara_match=bankara_match, b_info=b_info, splt=kwargs.get('splt'))
-    if bankara_match:
-        bankara_match = f'({bankara_match})'
-    str_point = f'{point}p' if point else ''
-    if mode == 'FEST':
-        mode_id = b_info['vsMode']['id']
-        bankara_match = '(CHALLENGE)'
-        if mode_id == 'VnNNb2RlLTY=':
-            bankara_match = '(OPEN)'
-        elif mode_id == 'VnNNb2RlLTg=':
-            bankara_match = '(TRI_COLOR)'
-        fest_match = battle_detail.get('festMatch') or {}
-        contribution = fest_match.get('contribution')
-        if contribution:
-            str_point = f'+{contribution}'
-        if fest_match.get('dragonMatchType') == 'DECUPLE':
-            rule += ' (x10)'
-        elif fest_match.get('dragonMatchType') == 'DRAGON':
-            rule += ' (x100)'
-        elif fest_match.get('dragonMatchType') == 'DOUBLE_DRAGON':
-            rule += ' (x333)'
-    msg = f"`{mode}{bankara_match} {rule} {judgement} {b_info.get('udemae') or ''} {str_point}`\n"
+    # title
+    msg = title
 
+    # body
     text_list = []
     teams = [battle_detail['myTeam']] + battle_detail['otherTeams']
     for team in sorted(teams, key=lambda x: x['order']):
@@ -163,6 +143,7 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
         text_list.append(f'{ti}\n')
     msg += ''.join(text_list)
 
+    # footer
     msg += f"`duration: {battle_detail['duration']}s, knockout: {battle_detail['knockout']} {b_process}`"
 
     succ = 0
@@ -186,6 +167,41 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
             msg += f' ({fest_power:.2f})'
     # print(msg)
     return msg
+
+
+def get_battle_msg_title(b_info, battle_detail, **kwargs):
+    mode = b_info['vsMode']['mode']
+    rule = b_info['vsRule']['name']
+    judgement = b_info['judgement']
+    bankara_match = (battle_detail.get('bankaraMatch') or {}).get('mode') or ''
+
+    point, b_process = get_point(bankara_match=bankara_match, b_info=b_info, splt=kwargs.get('splt'))
+    if bankara_match:
+        bankara_match = f'({bankara_match})'
+    str_point = f'{point}p' if point else ''
+
+    if mode == 'FEST':
+        mode_id = b_info['vsMode']['id']
+        bankara_match = '(CHALLENGE)'
+        if mode_id == 'VnNNb2RlLTY=':
+            bankara_match = '(OPEN)'
+        elif mode_id == 'VnNNb2RlLTg=':
+            bankara_match = '(TRI_COLOR)'
+        fest_match = battle_detail.get('festMatch') or {}
+        contribution = fest_match.get('contribution')
+        if contribution:
+            str_point = f'+{contribution}'
+        if fest_match.get('dragonMatchType') == 'DECUPLE':
+            rule += ' (x10)'
+        elif fest_match.get('dragonMatchType') == 'DRAGON':
+            rule += ' (x100)'
+        elif fest_match.get('dragonMatchType') == 'DOUBLE_DRAGON':
+            rule += ' (x333)'
+
+    # BANKARA(OPEN) 真格蛤蜊 WIN S+9 +8p
+    # FEST(OPEN) 占地对战 WIN  +2051
+    title = f"`{mode}{bankara_match} {rule} {judgement} {b_info.get('udemae') or ''} {str_point}`\n"
+    return title, point, b_process
 
 
 def get_dict_lang(lang):
@@ -344,7 +360,6 @@ def get_weapon_record(splt, lang='zh-CN'):
 {''.join(str_list)}
 ```
  '''
-    logger.info(msg)
     return msg
 
 

@@ -254,13 +254,17 @@ async def get_last_battle_or_coop(user_id, for_push=False):
 
 
 def get_last_msg(splt, _id, extra_info, is_battle=True, **kwargs):
-    if is_battle:
-        battle_detail = splt.get_battle_detail(_id)
-        kwargs['splt'] = splt
-        msg = get_battle_msg(extra_info, battle_detail, **kwargs)
-    else:
-        coo_detail = splt.get_coop_detail(_id)
-        msg = get_coop_msg(extra_info, coo_detail)
+    try:
+        if is_battle:
+            battle_detail = splt.get_battle_detail(_id)
+            kwargs['splt'] = splt
+            msg = get_battle_msg(extra_info, battle_detail, **kwargs)
+        else:
+            coo_detail = splt.get_coop_detail(_id)
+            msg = get_coop_msg(extra_info, coo_detail)
+    except Exception as e:
+        logger.exception(e)
+        msg = f'get last {"battle" if is_battle else "coop"} failed, please try again later.'
     return msg
 
 
