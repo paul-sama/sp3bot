@@ -67,6 +67,11 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @check_session_handler
 async def unknown_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    if text and len(text) > 500 and text.startswith('npf'):
+        user_id = update.effective_user.id
+        await set_session_token(context, user_id, text)
+        return
     await context.bot.send_message(chat_id=update.effective_chat.id,
                                    text="Sorry, I didn't understand. /help")
 
@@ -88,11 +93,40 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = f"""
 Navigate to this URL in your browser:
 {url}
-Log in, right click the "Select this account" button, copy the link address, and input:
-/set_token the_link_address
+Log in, right click the "Select this account" button, copy the link address, and paste below.
 """
         logger.info(msg)
         await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, disable_web_page_preview=True)
+
+
+async def set_session_token(context, user_id, token_msg):
+    try:
+        auth_code_verifier = context.user_data['auth_code_verifier']
+    except KeyError:
+        await send_bot_msg(context, chat_id=user_id,
+                           text="set token failed, please try again. /login")
+        return
+
+    logger.info(f'auth_code_verifier: {auth_code_verifier}')
+    session_token = login_2(use_account_url=token_msg, auth_code_verifier=auth_code_verifier)
+    if session_token == 'skip':
+        msg = 'set token failed, please try again. /login'
+        await send_bot_msg(context, chat_id=user_id, text=msg)
+        return
+    logger.info(f'session_token: {session_token}')
+    get_or_set_user(user_id=user_id, session_token=session_token)
+    msg = f"""
+Set token success! Bot now can get your splatoon3 data from SplatNet.
+/set_lang - set language, default(zh-CN) 默认中文
+/set_api_key - set stat.ink api_key, bot will sync your data to stat.ink
+/me - show your info
+/last - show the latest battle or coop
+/start_push - start push mode
+"""
+    await send_bot_msg(context, chat_id=user_id, text=msg)
+
+    user = get_or_set_user(user_id=user_id)
+    Splatoon(user_id, user.session_token).set_gtoken_and_bullettoken()
 
 
 async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -104,34 +138,8 @@ async def set_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_bot_msg(context, chat_id=update.effective_chat.id,
                            text="Please past the link address after /set_token")
         return
+    await set_session_token(context, user_id, token)
 
-    try:
-        auth_code_verifier = context.user_data['auth_code_verifier']
-    except KeyError:
-        await send_bot_msg(context, chat_id=update.effective_chat.id,
-                           text="set token failed, please try again. /login")
-        return
-
-    logger.info(f'auth_code_verifier: {auth_code_verifier}')
-    session_token = login_2(use_account_url=token, auth_code_verifier=auth_code_verifier)
-    if session_token == 'skip':
-        msg = 'set token failed, please try again. /login'
-        await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg)
-        return
-    logger.info(f'session_token: {session_token}')
-    user = get_or_set_user(user_id=update.effective_user.id, session_token=session_token)
-    msg = f"""
-Set token success! Bot now can get your splatoon3 data from SplatNet.
-/set_lang - set language, default(zh-CN) 默认中文
-/set_api_key - set stat.ink api_key, bot will sync your data to stat.ink
-/me - show your info
-/last - show the latest battle or coop
-/start_push - start push mode
-"""
-    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg)
-
-    user = get_or_set_user(user_id=user_id)
-    Splatoon(user_id, user.session_token).set_gtoken_and_bullettoken()
 
 @check_user_handler
 async def set_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
