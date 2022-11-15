@@ -37,7 +37,7 @@ def main():
 
     # Other handlers
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
-    application.add_handler(MessageHandler(filters.TEXT, unknown_text))
+    application.add_handler(MessageHandler(filters.ALL, unknown_text))
 
     job_queue = application.job_queue
     job_queue.run_once(check_push_job, 1, job_queue)

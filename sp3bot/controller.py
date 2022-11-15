@@ -72,6 +72,7 @@ async def unknown_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = update.effective_user.id
         await set_session_token(context, user_id, text)
         return
+    logger.debug(update.message)
     await context.bot.send_message(chat_id=update.effective_chat.id,
                                    text="Sorry, I didn't understand. /help")
 
