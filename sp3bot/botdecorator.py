@@ -22,7 +22,8 @@ def check_user_handler(func):
             first_name = update.effective_user.first_name
             last_name = update.effective_user.last_name
             full_name = f'{first_name} {last_name}'
-            logger.info(f'{func.__name__:>20}, {user_id}, {user_name}, {full_name} input: {update.message.text}')
+            text = getattr(update.message, "text", "")
+            logger.info(f'{func.__name__:>20}, {user_id}, {user_name}, {full_name} input: {text}')
             get_or_set_user(user_id=user_id, user_name=user_name, first_name=first_name, last_name=last_name)
             # await ctx.bot.send_message(chat_id=user_id, text='xxxx', parse_mode='Markdown')
 
@@ -46,7 +47,8 @@ def check_session_handler(func):
             first_name = update.effective_user.first_name
             last_name = update.effective_user.last_name
             full_name = f'{first_name or ""} {last_name or ""}'
-            logger.info(f'{func.__name__:>20}, {user_id}, {user_name}, {full_name} input: {update.message.text}')
+            text = getattr(update.message, "text", "")
+            logger.info(f'{func.__name__:>20}, {user_id}, {user_name}, {full_name} input: {text}')
             get_or_set_user(user_id=user_id, user_name=user_name, first_name=first_name, last_name=last_name)
             user = get_or_set_user(user_id=user_id)
             msg = f'Hello {user.first_name or full_name}!'

@@ -185,6 +185,32 @@ async def lang_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         logger.error(e)
 
 
+@check_user_handler
+async def set_battle_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    battle_show_type = context.args[0] if context.args else None
+
+    if not battle_show_type:
+        msg = '''
+set battle info, default show name
+/set_battle_info 1 - name
+/set_battle_info 2 - weapon
+/set_battle_info 3 - name (weapon)
+/set_battle_info 4 - weapon (name)
+'''
+        await send_bot_msg(context, chat_id=user_id, text=msg)
+        return
+
+    user = get_or_set_user(user_id=user_id)
+    db_user_info = defaultdict(str)
+    if user and user.user_info:
+        db_user_info = json.loads(user.user_info)
+    db_user_info['battle_show_type'] = str(battle_show_type)
+    get_or_set_user(user_id=user_id, user_info=json.dumps(db_user_info))
+    msg = await get_last_battle_or_coop(user_id)
+    await send_bot_msg(context, chat_id=user_id, text=msg, parse_mode='Markdown')
+
+
 @check_session_handler
 async def set_api_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -235,7 +261,12 @@ async def get_last_battle_or_coop(user_id, for_push=False):
     if battle_t > coop_t:
         if for_push:
             return battle_id, b_info, True
-        msg = get_last_msg(splt, battle_id, b_info)
+
+        try:
+            user_info = json.loads(user.user_info)
+        except:
+            user_info = {}
+        msg = get_last_msg(splt, battle_id, b_info, battle_show_type=user_info.get('battle_show_type'))
         return msg
     else:
         if for_push:
@@ -343,9 +374,11 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
         return
     battle_id, _info, is_battle = res
 
+    db_user_info = defaultdict(str)
+
     if user.user_info:
-        user_info = json.loads(user.user_info)
-        last_battle_id = user_info.get('battle_id')
+        db_user_info = json.loads(user.user_info)
+        last_battle_id = db_user_info.get('battle_id')
         # logger.info(f'last_battle_id: {last_battle_id}')
         if last_battle_id == battle_id:
             push_cnt = user.push_cnt + 1
@@ -367,13 +400,14 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
             return
 
     logger.info(f'{user.id}, {user.username} get new {"battle" if is_battle else "coop"}!')
-    user_info = json.dumps({'battle_id': battle_id})
-    get_or_set_user(user_id=chat_id, user_info=user_info, push_cnt=0)
+    db_user_info['battle_id'] = battle_id
+    get_or_set_user(user_id=chat_id, user_info=json.dumps(db_user_info), push_cnt=0)
     splt = Splatoon(chat_id, user.session_token)
-    msg = get_last_msg(splt, battle_id, _info, is_battle, **data)
+    msg = get_last_msg(splt, battle_id, _info, is_battle, battle_show_type=db_user_info.get('battle_show_type'), **data)
     await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
 
 
+@check_session_handler
 async def stop_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_or_set_user(user_id=update.effective_user.id, push=False)
     chat_id = update.effective_chat.id

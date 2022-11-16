@@ -35,13 +35,14 @@ MSG_HELP = """
 settings:
 /set_lang - set language, default(zh-CN) 默认中文
 /set_api_key - set stat.ink api_key for post data
+/set_battle_info - set battle info
 /show_db_info - show db info
 
 /help - show this help message
 """
 
 
-def get_row_text(p):
+def get_row_text(p, battle_show_type='1'):
     re = p['result']
     if not re:
         re = {"kill": 0, "death": 99, "assist": 0, "special": 0}
@@ -51,7 +52,15 @@ def get_row_text(p):
     d = re['death']
     ration = k / d if d else 99
     # name = p['name'].replace('`', '\\`') .replace("_", "\\_").replace("*", "\\*").replace("[", "\\[")
-    name = p['name'].replace('`', '`\``')
+    name = p['name']
+    weapon = (p.get('weapon') or {}).get('name') or ''
+    if battle_show_type == '2':
+        name = weapon
+    elif battle_show_type == '3':
+        name = f"{name} ({weapon})"
+    elif battle_show_type == '4':
+        name = f"{weapon} ({name})"
+    name = name.replace('`', '`\``')
     t = f"`{ak:>2}{k_str:>5}k {d:>2}d{ration:>4.1f}{re['special']:>3}sp {p['paint']:>4}p {name}`\n"
     if p.get('isMyself'):
         t = t.strip().replace('`', '').replace(name, '')
@@ -151,7 +160,7 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
     teams = [battle_detail['myTeam']] + battle_detail['otherTeams']
     for team in sorted(teams, key=lambda x: x['order']):
         for p in team['players']:
-            text_list.append(get_row_text(p))
+            text_list.append(get_row_text(p, kwargs.get('battle_show_type')))
         ti = ''
         if mode == 'FEST':
             ti = f"`{(team.get('result') or {}).get('paintRatio') or 0:.2%}  {team.get('festTeamName')}`"
