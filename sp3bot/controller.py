@@ -116,6 +116,7 @@ async def set_session_token(context, user_id, token_msg):
     try:
         auth_code_verifier = context.user_data['auth_code_verifier']
     except KeyError:
+        logger.info(f'no auth_code_verifier: {user_id}')
         await send_bot_msg(context, chat_id=user_id,
                            text="set token failed, please try again. /login")
         return
@@ -124,6 +125,7 @@ async def set_session_token(context, user_id, token_msg):
     session_token = login_2(use_account_url=token_msg, auth_code_verifier=auth_code_verifier)
     if session_token == 'skip':
         msg = 'set token failed, please try again. /login'
+        logger.info(msg)
         await send_bot_msg(context, chat_id=user_id, text=msg)
         return
     logger.info(f'session_token: {session_token}')
