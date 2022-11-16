@@ -16,6 +16,7 @@ from .msg import (
     MSG_HELP, get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_weapon_record, get_stage_record,
     get_my_schedule, get_fest_record
 )
+from .media import get_stage_img
 
 
 @check_user_handler
@@ -61,8 +62,17 @@ async def mall(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @check_user_handler
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id,
-                                   text="Sorry, I didn't understand that command. /help")
+    chat_id = update.effective_chat.id
+    text = getattr(update.message, "text", "")
+
+    if text.startswith("/img_schedule_"):
+        hour = int(text.split("_")[-1])
+        f_path = get_stage_img(hour)
+        if f_path:
+            await context.bot.send_photo(chat_id=chat_id, photo=open(f_path, 'rb'))
+            return
+
+    await context.bot.send_message(chat_id=chat_id, text="Sorry, I didn't understand that command. /help")
 
 
 @check_session_handler
