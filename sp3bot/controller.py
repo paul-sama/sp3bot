@@ -105,6 +105,8 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
 Navigate to this URL in your browser:
 {url}
 Log in, right click the "Select this account" button, copy the link address, and paste below.
+or input:
+/set_token the_link_address
 """
         logger.info(msg)
         await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, disable_web_page_preview=True)
