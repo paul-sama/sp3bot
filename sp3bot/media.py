@@ -44,6 +44,19 @@ def get_img_path(name, url):
     return img_path
 
 
+def img_rounded_border(img_path):
+    # https://www.imagemagick.org/Usage/thumbnails/#rounded_border
+    e_img_path = img_path.replace('.png', '_edit.png')
+    cmd = f'''
+convert {img_path} \
+          \( +clone -alpha extract -virtual-pixel black \
+             -spread 10 -blur 0x3 -threshold 50% -spread 1 -blur 0x.7 \) \
+          -alpha off -compose Copy_Opacity -composite {e_img_path}
+    '''
+    os.system(cmd)
+    return e_img_path
+
+
 def get_stage_img(cur_hour=0):
     sql = "SELECT * FROM `schedule` order by id desc limit 1"
     res = get_mysql_data('splatoon3', sql)
@@ -89,8 +102,8 @@ def get_stage_img(cur_hour=0):
         o_rule = base64.b64decode(n['bankaraMatchSettings'][1]['vsRule']['id']).decode('utf-8')
 
         for c in [
-            f'convert +append {img_stage1} {img_stage2} c.png',
-            f'convert +append {img_stage3} {img_stage4} o.png',
+            f'convert +append {img_rounded_border(img_stage1)} {img_rounded_border(img_stage2)} c.png',
+            f'convert +append {img_rounded_border(img_stage3)} {img_rounded_border(img_stage4)} o.png',
             f'convert -append  {c_rule}.png c.png {o_rule}.png o.png {path_img_schedule}'
         ]:
             logger.debug(c)

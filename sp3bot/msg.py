@@ -474,32 +474,57 @@ def get_my_schedule(splt):
 
     data = utils.gen_graphql_body('56c46bdbdfa4519eaf7845ce9f3cd67a')
     stage_record = splt._request(data, skip_check_token=True)
+
     dict_stage = {}
     for s in stage_record['data']['stageRecords']['nodes']:
         if not s or not s.get('stats'):
             continue
         dict_stage[s['id']] = {
-            'VnNSdWxlLTE=': s['stats']['winRateAr'],
-            'VnNSdWxlLTI=': s['stats']['winRateLf'],
-            'VnNSdWxlLTM=': s['stats']['winRateGl'],
-            'VnNSdWxlLTQ=': s['stats']['winRateCl'],
+            'VnNSdWxlLTE=': s['stats'].get('winRateAr'),
+            'VnNSdWxlLTI=': s['stats'].get('winRateLf'),
+            'VnNSdWxlLTM=': s['stats'].get('winRateGl'),
+            'VnNSdWxlLTQ=': s['stats'].get('winRateCl'),
         }
 
+    x_node = res['data']['xSchedules']['nodes']
+    l_node = res['data']['leagueSchedules']['nodes']
+
     text = ''
-    for node in res['data']['bankaraSchedules']['nodes'][:4]:
+    for idx, node in enumerate(res['data']['bankaraSchedules']['nodes'][:4]):
         s = node['bankaraMatchSettings']
         date_start = dt.strptime(node['startTime'], '%Y-%m-%dT%H:%M:%S%z')
-        c_rule_id = s[0]['vsRule']['id']
-        c_stage_1, c_stage_2 = s[0]['vsStages']
-        o_rule_id = s[1]['vsRule']['id']
-        o_stage_1, o_stage_2 = s[1]['vsStages']
-        row = f'''`CHALLENGE: {s[0]['vsRule']['name']} ({dict_stage[c_stage_1['id']][c_rule_id] or 0:.2%}, {dict_stage[c_stage_2['id']][c_rule_id] or 0:.2%})
-{c_stage_1['name']}, {c_stage_2['name']}
-OPEN: {s[1]['vsRule']['name']} ({dict_stage[o_stage_1['id']][o_rule_id] or 0:.2%}, {dict_stage[o_stage_2['id']][o_rule_id] or 0:.2%})
-{o_stage_1['name']}, {o_stage_2['name']}`
-/img\_schedule\_{date_start.hour}
+        c_rid = s[0]['vsRule']['id']
+        c_s1, c_s2 = s[0]['vsStages']
+        o_rid = s[1]['vsRule']['id']
+        o_s1, o_s2 = s[1]['vsStages']
 
+        x = x_node[idx]['xMatchSetting']
+        x_rid = x['vsRule']['id']
+        x_s1, x_s2 = x['vsStages']
+
+        l = l_node[idx]['leagueMatchSetting']
+        l_rid = l['vsRule']['id']
+        l_s1, l_s2 = l['vsStages']
+
+        row = f'''
+`C: {s[0]['vsRule']['name']} ({get_r(dict_stage, c_s1['id'], c_rid)}, {get_r(dict_stage, c_s2['id'], c_rid)})
+{c_s1['name']}, {c_s2['name']}
+O: {s[1]['vsRule']['name']} ({get_r(dict_stage, o_s1['id'], o_rid)}, {get_r(dict_stage, o_s2['id'], o_rid)})
+{o_s1['name']}, {o_s2['name']}
+X: {x['vsRule']['name']} ({get_r(dict_stage, x_s1['id'], x_rid)}, {get_r(dict_stage, x_s2['id'], x_rid)})
+{x_s1['name']}, {x_s2['name']}
+L: {l['vsRule']['name']} ({get_r(dict_stage, l_s1['id'], l_rid)}, {get_r(dict_stage, l_s2['id'], l_rid)})
+{l_s1['name']}, {l_s2['name']}`
+/img\_schedule\_{date_start.hour}
 '''
         text += row
     msg = f'\n{text}'
     return msg
+
+
+def get_r(_dict, stage_id, rule_id):
+    rate = 0
+    if stage_id not in _dict:
+        return f'{rate:.2%}'
+    rate = _dict[stage_id].get(rule_id) or 0
+    return f'{rate:.2%}'
