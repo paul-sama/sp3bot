@@ -57,6 +57,15 @@ convert {img_path} \
     return e_img_path
 
 
+def img_resize(img_path, size):
+    e_img_path = img_path.replace('.png', '_edit.png')
+    cmd = f'''
+convert "{img_path}" -resize {size} "{e_img_path}"
+    '''
+    os.system(cmd)
+    return e_img_path
+
+
 def get_stage_img(cur_hour=0):
     sql = "SELECT * FROM `schedule` order by id desc limit 1"
     res = get_mysql_data('splatoon3', sql)
@@ -114,6 +123,57 @@ def get_stage_img(cur_hour=0):
             return path_img_schedule
         else:
             logger.debug(f'not found path_img_schedule')
+
+
+def get_coop_img():
+    sql = "SELECT * FROM `schedule` order by id desc limit 1"
+    res = get_mysql_data('splatoon3', sql)
+    if not res:
+        return
+
+    data = json.loads(res[0]['raw_data'])
+    nodes = data['data']['coopGroupingSchedule']['regularSchedules']['nodes']
+
+    path_img_schedule = f"{IMG_DIR}images/schedule/coop_{nodes[0]['endTime']}.png"
+    if os.path.exists(path_img_schedule):
+        logger.debug(f'found schedule img: {path_img_schedule}')
+        return path_img_schedule
+
+    pth_dir = os.path.dirname(path_img_schedule)
+    if not os.path.exists(pth_dir):
+        os.makedirs(pth_dir)
+
+    dir_tmp = f'{IMG_DIR}images'
+    if not os.path.exists(dir_tmp):
+        os.makedirs(dir_tmp)
+    os.chdir(dir_tmp)
+
+    coop_list = []
+    for idx, n in enumerate(nodes):
+        pth_node = f'{IMG_DIR}images/coop_node_{idx}.png'
+        weapons = n['setting']['weapons']
+        cmd = f'convert +append coop_stage_{n["setting"]["coopStage"]["coopStageId"]}.png '
+        for w in weapons:
+            download_img([
+                (w['name'], w['image']['url'])
+            ])
+            pth_img = img_resize(get_img_path(w['name'], w['image']['url']), '128x128')
+            cmd += f'"{pth_img}" '
+        cmd += f'{pth_node}'
+
+        logger.debug(cmd)
+        os.system(cmd)
+        coop_list.append(pth_node)
+
+    cmd = f'convert -append {" ".join(coop_list)} {path_img_schedule}'
+    logger.debug(cmd)
+    os.system(cmd)
+
+    if os.path.exists(path_img_schedule):
+        logger.debug(f'set img: {path_img_schedule}')
+        return path_img_schedule
+    else:
+        logger.debug(f'not found path_img_schedule')
 
 
 if __name__ == '__main__':

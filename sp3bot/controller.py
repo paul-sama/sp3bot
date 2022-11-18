@@ -16,7 +16,7 @@ from .msg import (
     MSG_HELP, get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_weapon_record, get_stage_record,
     get_my_schedule, get_fest_record
 )
-from .media import get_stage_img
+from .media import get_stage_img, get_coop_img
 
 
 @check_user_handler
@@ -52,7 +52,15 @@ async def my_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @check_user_handler
 async def coop_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=show_coop(), parse_mode='Markdown')
+    chat_id = update.effective_chat.id
+    text = show_coop()
+    try:
+        f_p = get_coop_img()
+        if f_p:
+            await context.bot.send_photo(chat_id=chat_id, photo=open(f_p, 'rb'), caption=text)
+    except Exception as e:
+        logger.error(e)
+        await context.bot.send_message(chat_id=chat_id, text=text, parse_mode='Markdown')
 
 
 @check_user_handler

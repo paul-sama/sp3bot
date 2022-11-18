@@ -31,6 +31,7 @@ MSG_HELP = """
 /last - show the last battle or coop
 /start_push - start push mode
 /my_schedule - my schedule
+/coop_schedule - Coop Schedule
 
 settings:
 /set_lang - set language, default(zh-CN) 默认中文
