@@ -316,7 +316,7 @@ def get_last_msg(splt, _id, extra_info, is_battle=True, **kwargs):
 async def last(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     msg = await get_last_battle_or_coop(user_id)
-    await send_bot_msg(context, chat_id=user_id, text=msg, parse_mode='Markdown')
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 
 
 @check_session_handler
@@ -465,7 +465,7 @@ user_info: {user.user_info}
 ```
 /clear\_db\_info  clear your data
     """
-    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='MarkdownV2')
+    await send_bot_msg(context, chat_id=update.effective_user.id, text=msg, parse_mode='MarkdownV2')
 
 
 @check_user_handler
