@@ -303,24 +303,27 @@ def get_coop_msg(c_point, data):
     my = detail['myResult']
     wave_msg = ''
     d_w = {0: '∼', 1: '≈', 2: '≋'}
+    win = False
     for w in detail['waveResults'][:3]:
         event = (w.get('eventWave') or {}).get('name') or ''
         wave_msg += f"`W{w['waveNumber']} {w['teamDeliverCount']}/{w['deliverNorm']}({w['goldenPopCount']}) " \
                     f"{d_w[w['waterLevel']]} {event}`\n"
+        if w['waveNumber'] == 3 and w['teamDeliverCount'] >= w['deliverNorm']:
+            win = True
     if detail.get('bossResult'):
         w = detail['waveResults'][-1]
         r = 'GJ!' if detail['bossResult']['hasDefeatBoss'] else 'NG'
         s = ''
         scale = detail.get('scale')
-        if scale and scale.get('bronze'):
-            s += f'🥉{scale["bronze"]}'
-        if scale and scale.get('silver'):
-            s += f' 🥈{scale["silver"]}'
         if scale and scale.get('gold'):
             s += f' 🏅️{scale["gold"]}'
+        if scale and scale.get('silver'):
+            s += f' 🥈{scale["silver"]}'
+        if scale and scale.get('bronze'):
+            s += f'🥉{scale["bronze"]}'
         wave_msg += f"`EX {detail['bossResult']['boss']['name']} ({w['goldenPopCount']}) {r} {s}`\n"
     msg = f"""
-`{detail['afterGrade']['name']} {detail['afterGradePoint']} {detail['dangerRate']:.0%} +{detail['jobPoint']}({c_point}p)`
+`{detail['afterGrade']['name']} {detail['afterGradePoint']} {detail['dangerRate']:.0%} {'🎉 ' if win else ''}+{detail['jobPoint']}({c_point}p)`
 {wave_msg}
 {coop_row(my)}
 """
