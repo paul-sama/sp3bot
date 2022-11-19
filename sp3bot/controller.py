@@ -440,7 +440,7 @@ async def stop_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
     current_statics = context.user_data.get('current_statics')
     if current_statics:
         msg += get_statics(current_statics)
-    current_jobs = context.job_queue.get_jobs_by_name(str(uuser_id))
+    current_jobs = context.job_queue.get_jobs_by_name(str(user_id))
     if not current_jobs:
         return False
     for job in current_jobs:
