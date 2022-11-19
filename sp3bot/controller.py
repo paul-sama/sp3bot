@@ -99,7 +99,7 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         img_path = f'{dir_path}/screenshots/sp3bot-login.gif'
-        await context.bot.send_animation(chat_id=update.effective_chat.id, animation=open(img_path, 'rb'))
+        await context.bot.send_animation(chat_id=update.effective_user.id, animation=open(img_path, 'rb'))
     except Exception as e:
         logger.error(e)
 
@@ -117,7 +117,7 @@ or input:
 /set_token the_link_address
 """
         logger.info(msg)
-        await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, disable_web_page_preview=True)
+        await send_bot_msg(context, chat_id=update.effective_user.id, text=msg, disable_web_page_preview=True)
 
 
 async def set_session_token(context, user_id, token_msg):
