@@ -47,7 +47,7 @@ async def my_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user = get_or_set_user(user_id=user_id)
     splt = Splatoon(user_id, user.session_token)
-    await send_bot_msg(context, chat_id=user_id, text=get_my_schedule(splt), parse_mode='Markdown')
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=get_my_schedule(splt), parse_mode='Markdown')
 
 
 @check_user_handler
@@ -74,7 +74,7 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = getattr(update.message, "text", "")
 
     if text.startswith("/img_schedule_"):
-        hour = int(text.split("_")[-1])
+        hour = int(text.split('@')[0].split("_")[-1])
         f_path = get_stage_img(hour)
         if f_path:
             await context.bot.send_photo(chat_id=chat_id, photo=open(f_path, 'rb'))
@@ -242,7 +242,7 @@ async def set_api_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except IndexError:
         msg = '''Please copy you api_key from https://stat.ink/profile then paste after
 /set_api_key your_api_key'''
-        await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, disable_web_page_preview=True)
+        await send_bot_msg(context, chat_id=update.effective_user.id, text=msg, disable_web_page_preview=True)
         return
     logger.info(f'set_api_key: {api_key}')
 
@@ -361,18 +361,19 @@ async def fest_record(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @check_session_handler
 async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    user = get_or_set_user(user_id=chat_id)
+    user_id = update.effective_user.id
+    user = get_or_set_user(user_id=user_id)
     if user.push:
         # if /start_push again, set push_cnt 0
-        get_or_set_user(user_id=chat_id, push=True, push_cnt=0)
+        get_or_set_user(user_id=user_id, push=True, push_cnt=0)
         await send_bot_msg(context, chat_id=chat_id, text='You have already started push. /stop_push to stop')
         return
-    get_or_set_user(user_id=chat_id, push=True, push_cnt=0)
+    get_or_set_user(user_id=user_id, push=True, push_cnt=0)
     current_statics = defaultdict(int)
     context.user_data['current_statics'] = current_statics
     context.job_queue.run_repeating(
         push_latest_battle, interval=INTERVAL,
-        name=str(chat_id), chat_id=chat_id,
+        name=str(user_id), chat_id=chat_id,
         data=dict(current_statics=current_statics),
         job_kwargs=dict(misfire_grace_time=9, coalesce=False, max_instances=3))
     msg = f'Start push! check new data(battle or coop) every {INTERVAL} seconds. /stop_push to stop'
@@ -382,15 +383,16 @@ async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
     logger.debug(f'push_latest_battle: {context.job.name}')
     chat_id = context.job.chat_id
+    user_id = int(context.job.name)
 
-    user = get_or_set_user(user_id=chat_id)
+    user = get_or_set_user(user_id=user_id)
     if not user or user.push is False:
         logger.info(f'stop by user clear db: {context.job.name} stop')
         context.job.schedule_removal()
         return
 
     data = context.job.data or {}
-    res = await get_last_battle_or_coop(chat_id, for_push=True)
+    res = await get_last_battle_or_coop(user_id, for_push=True)
     if not res:
         logger.info('no new battle or coop')
         return
@@ -408,10 +410,10 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
                 # show log every 10 minutes
                 logger.info(f'push_latest_battle: {user.username}, {chat_id}')
 
-            get_or_set_user(user_id=chat_id, push_cnt=push_cnt)
+            get_or_set_user(user_id=user_id, push_cnt=push_cnt)
             if push_cnt * INTERVAL / 60 > 30:
                 context.job.schedule_removal()
-                get_or_set_user(user_id=chat_id, push=False)
+                get_or_set_user(user_id=user_id, push=False)
                 msg = 'No game record for 30 minutes, stop push.'
 
                 if data.get('current_statics'):
@@ -423,29 +425,30 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
 
     logger.info(f'{user.id}, {user.username} get new {"battle" if is_battle else "coop"}!')
     db_user_info['battle_id'] = battle_id
-    get_or_set_user(user_id=chat_id, user_info=json.dumps(db_user_info), push_cnt=0)
-    splt = Splatoon(chat_id, user.session_token)
+    get_or_set_user(user_id=user_id, user_info=json.dumps(db_user_info), push_cnt=0)
+    splt = Splatoon(user_id, user.session_token)
     msg = get_last_msg(splt, battle_id, _info, is_battle, battle_show_type=db_user_info.get('battle_show_type'), **data)
     await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
 
 
 @check_session_handler
 async def stop_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = get_or_set_user(user_id=update.effective_user.id, push=False)
+    user_id = update.effective_user.id
     chat_id = update.effective_chat.id
+    user = get_or_set_user(user_id=user_id, push=False)
     msg = f'Stop push!'
     current_statics = context.user_data.get('current_statics')
     if current_statics:
         msg += get_statics(current_statics)
-    current_jobs = context.job_queue.get_jobs_by_name(str(update.effective_user.id))
+    current_jobs = context.job_queue.get_jobs_by_name(str(uuser_id))
     if not current_jobs:
         return False
     for job in current_jobs:
-        logger.info(f'job: {job.name}, {chat_id}')
-        if job.name == str(chat_id):
+        logger.info(f'job: {job.name}, {user_id}')
+        if job.name == str(user_id):
             job.schedule_removal()
-            logger.info(f'job: {job.name}, {chat_id} removed')
-    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
+            logger.info(f'job: {job.name}, {user_id} removed')
+    await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
 
 
 @check_user_handler
