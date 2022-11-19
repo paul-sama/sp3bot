@@ -320,7 +320,7 @@ def get_coop_msg(c_point, data):
         if scale and scale.get('silver'):
             s += f' 🥈{scale["silver"]}'
         if scale and scale.get('bronze'):
-            s += f'🥉{scale["bronze"]}'
+            s += f' 🥉{scale["bronze"]}'
         wave_msg += f"`EX {detail['bossResult']['boss']['name']} ({w['goldenPopCount']}) {r} {s}`\n"
     msg = f"""
 `{detail['afterGrade']['name']} {detail['afterGradePoint']} {detail['dangerRate']:.0%} {'🎉 ' if win else ''}+{detail['jobPoint']}({c_point}p)`
