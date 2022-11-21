@@ -37,6 +37,7 @@ settings:
 /set_lang - set language, default(zh-CN) 默认中文
 /set_api_key - set stat.ink api_key for post data
 /set_battle_info - set battle info
+/get_seed - https://leanny.github.io/splat3seedchecker/#/settings
 /show_db_info - show db info
 
 /help - show this help message

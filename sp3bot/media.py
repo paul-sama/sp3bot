@@ -1,4 +1,6 @@
 
+import mmh3
+import time
 import base64
 import json
 import os
@@ -174,6 +176,18 @@ def get_coop_img():
         return path_img_schedule
     else:
         logger.debug(f'not found path_img_schedule')
+
+
+def get_seed_file(uid, outfit):
+    h = mmh3.hash(uid) & 0xFFFFFFFF  # make positive
+    key = base64.b64encode(bytes([k ^ (h & 0xFF) for k in bytes(uid, "utf-8")]))
+    t = int(time.time())
+
+    path_file = f'/tmp/gear_{t}.json'
+    with open(path_file, "x") as fout:
+        json.dump({"key": key.decode("utf-8"), "h": h, "timestamp": t, "gear": outfit}, fout)
+    logger.debug(f'get_seed_file: {path_file}')
+    return path_file
 
 
 if __name__ == '__main__':
