@@ -40,38 +40,41 @@ DBSession = sessionmaker(bind=engine)
 
 
 def get_or_set_user(**kwargs):
-    user_id = kwargs.get('user_id')
-    session = DBSession()
+    try:
+        user_id = kwargs.get('user_id')
+        session = DBSession()
 
-    if not user_id:
-        logger.error('user_id is None')
-        return
+        if not user_id:
+            logger.error('user_id is None')
+            return
 
-    user = session.query(UserTable).filter(UserTable.id == user_id).first()
-    if user:
-        logger.debug(f'get user from db: {user.id}, {user.username}, {kwargs}')
-        for k, v in kwargs.items():
-            if getattr(user, k, '_empty') == '_empty' or k == 'user_id':
-                continue
-            if 'name' not in k:
-                logger.debug(f'update user {k}={v}')
-            setattr(user, k, v)
-            session.commit()
+        user = session.query(UserTable).filter(UserTable.id == user_id).first()
+        if user:
+            logger.debug(f'get user from db: {user.id}, {user.username}, {kwargs}')
+            for k, v in kwargs.items():
+                if getattr(user, k, '_empty') == '_empty' or k == 'user_id':
+                    continue
+                if 'name' not in k:
+                    logger.debug(f'update user {k}={v}')
+                setattr(user, k, v)
+                session.commit()
+            # session.close()
+            return user
+
+        logger.info('create user to db')
+        user = UserTable(
+            id=user_id,
+            username=kwargs.get('user_name'),
+            first_name=kwargs.get('first_name'),
+            last_name=kwargs.get('last_name'),
+        )
+
+        session.add(user)
+        session.commit()
         # session.close()
         return user
-
-    logger.info('create user to db')
-    user = UserTable(
-        id=user_id,
-        username=kwargs.get('user_name'),
-        first_name=kwargs.get('first_name'),
-        last_name=kwargs.get('last_name'),
-    )
-
-    session.add(user)
-    session.commit()
-    # session.close()
-    return user
+    except Exception as e:
+        logger.error(f'get_or_set_user error: {e}')
 
 
 def get_all_user():
