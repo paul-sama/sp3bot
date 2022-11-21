@@ -289,7 +289,11 @@ async def get_last_battle_or_coop(user_id, for_push=False):
     battle_t = base64.b64decode(battle_id).decode('utf-8').split('_')[0].split(':')[-1]
 
     # get last coop
-    res = splt.get_coops()
+    if (dt.utcnow() - dt.strptime(battle_t, '%Y%m%dT%H%M%S')).seconds < 60:
+        # played battle in 1 minute, no need to get coop
+        res = None
+    else:
+        res = splt.get_coops()
     try:
         c_point = res['data']['coopResult']['pointCard']['regularPoint']
         coop_id = res['data']['coopResult']['historyGroups']['nodes'][0]['historyDetails']['nodes'][0]['id']
