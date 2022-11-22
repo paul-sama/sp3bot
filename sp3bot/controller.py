@@ -217,11 +217,28 @@ async def lang_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     """Parses the CallbackQuery and updates the message text."""
     try:
         query = update.callback_query
-
         await query.answer()
-        lang = query.data
-        get_or_set_user(user_id=update.effective_user.id, acc_loc=lang)
-        await query.edit_message_text(text=f"Set language Success! {lang}")
+        btn_text = query.data
+        chat_id = update.effective_chat.id
+        user_id = update.effective_user.id
+
+        logger.info(f'btn: {btn_text}')
+        if btn_text and len(btn_text) == 5:
+            get_or_set_user(user_id=user_id, acc_loc=btn_text)
+            await query.edit_message_text(text=f"Set language Success! {btn_text}")
+
+        user = get_or_set_user(user_id=user_id)
+        splt = Splatoon(user_id, user.session_token)
+        msg = ''
+        if btn_text == '/weapon_record':
+            msg = get_weapon_record(splt, lang=user.acc_loc)
+        elif btn_text == '/stage_record':
+            msg = get_stage_record(splt)
+        elif btn_text == '/fes_record':
+            msg = get_fest_record(splt, lang=user.acc_loc)
+        if msg:
+            await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
+
     except Exception as e:
         logger.error(e)
 
@@ -351,7 +368,15 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
     coop = splt.get_coop_summary()
     msg = get_summary(res, all_res, coop, lang=user.acc_loc)
     logger.debug(msg)
-    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
+
+    buttons = [[
+        InlineKeyboardButton('🔫', callback_data=f'/weapon_record'),
+        InlineKeyboardButton('🗺', callback_data=f'/stage_record'),
+        InlineKeyboardButton('️🎊', callback_data=f'/fes_record')
+    ]]
+    reply_markup = InlineKeyboardMarkup(buttons)
+
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown', reply_markup=reply_markup)
 
 
 @check_session_handler

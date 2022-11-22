@@ -285,9 +285,6 @@ def get_summary(data, all_data, coop, lang='zh-CN'):
 {s_time:%Y-%m-%d %H:%M:%S} +08:00
 {coop_msg}
 ```
-/weapon\_record
-/stage\_record
-/fest\_record
 """
     return msg
 
