@@ -4,7 +4,7 @@ import os
 import time
 from collections import defaultdict
 from datetime import datetime as dt
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Message, WebAppInfo
 from loguru import logger
 from telegram.ext import ContextTypes
 from .model import show_schedule, show_coop, show_mall
@@ -369,12 +369,21 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = get_summary(res, all_res, coop, lang=user.acc_loc)
     logger.debug(msg)
 
-    buttons = [[
+    buttons = [
         InlineKeyboardButton('🔫', callback_data=f'/weapon_record'),
         InlineKeyboardButton('🗺', callback_data=f'/stage_record'),
         InlineKeyboardButton('️🎊', callback_data=f'/fes_record')
-    ]]
-    reply_markup = InlineKeyboardMarkup(buttons)
+    ]
+
+    if user.api_key:
+        if user.user_info:
+            user_info = json.loads(user.user_info)
+            url = user_info.get('url_stat_ink')
+            if url:
+                logger.debug(f'get url_stat_ink: {url}')
+                buttons.append(InlineKeyboardButton('📊', web_app=WebAppInfo(url=url)))
+
+    reply_markup = InlineKeyboardMarkup([buttons])
 
     await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown', reply_markup=reply_markup)
 
@@ -581,3 +590,9 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
                 except Exception as e:
                     logger.bind(cron=True).error(f"post_battle_to_stat_ink: {e}")
                     time.sleep(5)
+
+            db_user_info = defaultdict(str)
+            if u.user_info:
+                db_user_info = json.loads(u.user_info)
+            db_user_info['url_stat_ink'] = res[1]
+            get_or_set_user(user_id=u_id, user_info=json.dumps(db_user_info))
