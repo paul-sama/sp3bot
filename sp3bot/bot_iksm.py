@@ -226,15 +226,19 @@ def post_battle_to_stat_ink_s3si_ts(**kwargs):
 	logger.bind(cron=True).debug(f'cli: {rtn}')
 
 	battle_cnt = 0
+	coop_cnt = 0
 	url = ''
 	for line in rtn.split('\n'):
 		line = line.strip()
 		if not line:
 			continue
 		if 'exported to https://stat.ink' in line:
-			battle_cnt += 1
-			url = line.split('to ')[1].split('spl3').split('salmon3')[0][:-1]
+			if 'salmon3' in line:
+				coop_cnt += 1
+			else:
+				battle_cnt += 1
+			url = line.split('to ')[1].split('spl3')[0].split('salmon3')[0][:-1]
 
 	logger.bind(cron=True).debug(f'result: {battle_cnt}, {url}')
-	if battle_cnt:
-		return battle_cnt, url
+	if battle_cnt or coop_cnt:
+		return battle_cnt, coop_cnt, url

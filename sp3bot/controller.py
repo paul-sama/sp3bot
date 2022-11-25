@@ -580,7 +580,13 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
                                               api_key=u.api_key, acc_loc=u.acc_loc)
         if res:
             chat_id = u.id
-            msg = f'push {res[0]} battles to stat.ink\n{res[1]}'
+            battle_cnt, coop_cnt, url = res
+            msg = 'Exported'
+            if battle_cnt:
+                msg += f' {battle_cnt} battles'
+            if coop_cnt:
+                msg += f' {coop_cnt} jobs'
+            msg += f' to\n{url}'
             while True:
                 try:
                     ret = await context.bot.send_message(chat_id=chat_id, text=msg, disable_web_page_preview=True)
@@ -594,5 +600,5 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
             db_user_info = defaultdict(str)
             if u.user_info:
                 db_user_info = json.loads(u.user_info)
-            db_user_info['url_stat_ink'] = res[1]
+            db_user_info['url_stat_ink'] = url
             get_or_set_user(user_id=u_id, user_info=json.dumps(db_user_info))
