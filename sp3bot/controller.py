@@ -11,7 +11,7 @@ from .model import show_schedule, show_coop, show_mall
 from .botdecorator import check_user_handler, check_session_handler, send_bot_msg
 from .db import get_or_set_user, get_all_user
 from .splat import Splatoon
-from .bot_iksm import log_in, login_2, A_VERSION, post_battle_to_stat_ink, post_battle_to_stat_ink_s3si_ts
+from .bot_iksm import log_in, login_2, A_VERSION, update_s3si_ts, exported_to_stat_ink
 from .msg import (
     MSG_HELP, get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_weapon_record, get_stage_record,
     get_my_schedule, get_fest_record
@@ -569,15 +569,34 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
 
     logger.bind(cron=True).debug(f"crontab_job")
     users = get_all_user()
+    u_list = []
     for u in users:
         if not u.api_key:
             continue
         if user_id and user_id != u.id:
             continue
+        u_list.append(u)
+
+    if not u_list:
+        logger.bind(cron=True).debug(f"no user need to run crontab_job")
+        return
+
+    update_s3si_ts()
+
+    from concurrent.futures import ThreadPoolExecutor
+    thread_pool = ThreadPoolExecutor(max_workers=5)
+
+    idx = 0
+    for res in thread_pool.map(exported_to_stat_ink,
+                               [u.id for u in u_list],
+                               [u.session_token for u in u_list],
+                               [u.api_key for u in u_list],
+                               [u.acc_loc for u in u_list]):
+        u = u_list[idx]
+        idx += 1
         u_id = u.id
         logger.bind(cron=True).debug(f"get user: {u.username}, have api_key: {u.api_key}")
-        res = post_battle_to_stat_ink_s3si_ts(user_id=u_id, session_token=u.session_token,
-                                              api_key=u.api_key, acc_loc=u.acc_loc)
+
         if res:
             chat_id = u.id
             battle_cnt, coop_cnt, url = res
@@ -596,7 +615,7 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
                 try:
                     ret = await context.bot.send_message(chat_id=chat_id, text=msg, disable_web_page_preview=True)
                     if isinstance(ret, Message):
-                        logger.bind(cron=True).info(f"send message: {ret.text}")
+                        logger.bind(cron=True).info(f"{chat_id} send message: {ret.text}")
                         break
                 except Exception as e:
                     logger.bind(cron=True).error(f"post_battle_to_stat_ink: {e}")

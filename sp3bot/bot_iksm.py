@@ -242,3 +242,80 @@ def post_battle_to_stat_ink_s3si_ts(**kwargs):
 	logger.bind(cron=True).debug(f'result: {battle_cnt}, {coop_cnt}, {url}')
 	if battle_cnt or coop_cnt:
 		return battle_cnt, coop_cnt, url
+
+
+def update_s3si_ts():
+	path_folder = f'{pth}/s3s_user'
+	if not os.path.exists(path_folder):
+		os.mkdir(path_folder)
+	os.chdir(path_folder)
+
+	# get s3s code
+	s3s_folder = f'{path_folder}/s3sits_git'
+	if not os.path.exists(s3s_folder):
+		cmd = f'git clone https://github.com/spacemeowx2/s3si.ts {s3s_folder}'
+		rtn = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE).stdout.decode('utf-8')
+		logger.bind(cron=True).debug(f'cli: {rtn}')
+		os.chdir(s3s_folder)
+	else:
+		os.chdir(s3s_folder)
+		os.system('git restore .')
+		cmd = f'git pull'
+		rtn = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE).stdout.decode('utf-8')
+		logger.bind(cron=True).debug(f'cli: {rtn}')
+
+	# edit agent
+	cmd_list = [
+		"""sed -i "1,5s/s3si.ts/s3si.ts - t.me\/splatoon3_bot/g" ./src/constant.ts""",
+	]
+	for cmd in cmd_list:
+		logger.bind(cron=True).debug(f'cli: {cmd}')
+		os.system(cmd)
+
+
+def exported_to_stat_ink(user_id, session_token, api_key, user_lang):
+	logger.bind(cron=True).debug(f'exported_to_stat_ink: {user_id}')
+	logger.bind(cron=True).debug(f'session_token: {session_token}')
+	logger.bind(cron=True).debug(f'api_key: {api_key}')
+
+	s3sits_folder = f'{pth}/s3s_user/s3sits_git'
+	os.chdir(s3sits_folder)
+
+	path_config_file = f'{s3sits_folder}/config_{user_id}.json'
+	if not os.path.exists(path_config_file):
+		config_data = {
+			"userLang": user_lang,
+			"loginState": {
+				"sessionToken": session_token
+			},
+			"statInkApiKey": api_key
+		}
+		with open(path_config_file, 'w') as f:
+			f.write(json.dumps(config_data, indent=2, sort_keys=False, separators=(',', ': ')))
+	else:
+		cmd = f"""sed -i "s/userLang[^,]*,/userLang\": \"{user_lang}\",/g" {path_config_file}"""
+		logger.bind(cron=True).debug(f'cli: {cmd}')
+		os.system(cmd)
+
+	cmd = f'/home/anyeccc/.deno/bin/deno run -Ar ./s3si.ts -n -p {path_config_file}'
+	logger.bind(cron=True).debug(cmd)
+	rtn = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE).stdout.decode('utf-8')
+	logger.bind(cron=True).debug(f'{user_id} cli: {rtn}')
+
+	battle_cnt = 0
+	coop_cnt = 0
+	url = ''
+	for line in rtn.split('\n'):
+		line = line.strip()
+		if not line:
+			continue
+		if 'exported to https://stat.ink' in line:
+			if 'salmon3' in line:
+				coop_cnt += 1
+			else:
+				battle_cnt += 1
+			url = line.split('to ')[1].split('spl3')[0].split('salmon3')[0][:-1]
+
+	logger.bind(cron=True).debug(f'{user_id} result: {battle_cnt}, {coop_cnt}, {url}')
+	if battle_cnt or coop_cnt:
+		return battle_cnt, coop_cnt, url
