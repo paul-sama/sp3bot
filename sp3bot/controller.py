@@ -110,8 +110,8 @@ async def unknown_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await set_session_token(context, user_id, text)
         return
     logger.debug(update.message)
-    await context.bot.send_message(chat_id=update.effective_chat.id,
-                                   text="Sorry, I didn't understand. /help")
+    # await context.bot.send_message(chat_id=update.effective_chat.id,
+    #                                text="Sorry, I didn't understand. /help")
 
 
 async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -236,6 +236,7 @@ async def lang_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             msg = get_stage_record(splt)
         elif btn_text == '/fes_record':
             msg = get_fest_record(splt, lang=user.acc_loc)
+            logger.debug(msg)
         if msg:
             await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
 
