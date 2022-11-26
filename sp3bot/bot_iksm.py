@@ -239,6 +239,6 @@ def post_battle_to_stat_ink_s3si_ts(**kwargs):
 				battle_cnt += 1
 			url = line.split('to ')[1].split('spl3')[0].split('salmon3')[0][:-1]
 
-	logger.bind(cron=True).debug(f'result: {battle_cnt}, {url}')
+	logger.bind(cron=True).debug(f'result: {battle_cnt}, {coop_cnt}, {url}')
 	if battle_cnt or coop_cnt:
 		return battle_cnt, coop_cnt, url

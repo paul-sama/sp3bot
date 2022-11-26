@@ -586,6 +586,11 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
                 msg += f' {battle_cnt} battles'
             if coop_cnt:
                 msg += f' {coop_cnt} jobs'
+
+            if battle_cnt and not coop_cnt:
+                url += '/spl3'
+            elif coop_cnt and not battle_cnt:
+                url += '/salmon3'
             msg += f' to\n{url}'
             while True:
                 try:
@@ -600,5 +605,5 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
             db_user_info = defaultdict(str)
             if u.user_info:
                 db_user_info = json.loads(u.user_info)
-            db_user_info['url_stat_ink'] = url
+            db_user_info['url_stat_ink'] = url.replace('/spl3', '').replace('/salmon3', '')
             get_or_set_user(user_id=u_id, user_info=json.dumps(db_user_info))
