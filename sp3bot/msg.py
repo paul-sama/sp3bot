@@ -320,8 +320,11 @@ def get_coop_msg(c_point, data):
         if scale and scale.get('bronze'):
             s += f' 🥉{scale["bronze"]}'
         wave_msg += f"`EX {detail['bossResult']['boss']['name']} ({w['goldenPopCount']}) {r} {s}`\n"
+
+    king_smell = detail.get("smellMeter")
+    king_str = f'{king_smell}/5' if king_smell else ''
     msg = f"""
-`{detail['afterGrade']['name']} {detail['afterGradePoint']} {detail['dangerRate']:.0%} {'🎉 ' if win else ''}+{detail['jobPoint']}({c_point}p)`
+`{detail['afterGrade']['name']} {detail['afterGradePoint']} {detail['dangerRate']:.0%} {'🎉 ' if win else ''}+{detail['jobPoint']}({c_point}p) {king_str}`
 {wave_msg}
 {coop_row(my)}
 """
