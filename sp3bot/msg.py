@@ -369,7 +369,7 @@ def get_weapon_record(splt, lang='zh-CN'):
     data = utils.gen_graphql_body('a0c277c719b758a926772879d8e53ef8')
     res = splt._request(data, skip_check_token=True)
     if not res:
-        return '`Error`'
+        return '`Network error, try again`'
     weapons = res['data']['weaponRecords']['nodes']
     str_list = []
     for w in weapons:
@@ -397,7 +397,7 @@ def get_stage_record(splt):
     data = utils.gen_graphql_body('56c46bdbdfa4519eaf7845ce9f3cd67a')
     res = splt._request(data, skip_check_token=True)
     if not res:
-        return '`Error`'
+        return '`Network error, try again`'
     stages = res['data']['stageRecords']['nodes']
     str_list = []
     for s in stages:
@@ -418,7 +418,7 @@ def get_fest_record(splt, lang='zh-CN'):
     dict_lang = get_dict_lang(lang)
     res = splt._request(utils.gen_graphql_body('44c76790b68ca0f3da87f2a3452de986'), skip_check_token=True)
     if not res:
-        return '`Error`'
+        return '`Network error, try again`'
     records = res['data']['festRecords']['nodes']
     str_list = []
     for s in records:
@@ -455,7 +455,7 @@ def get_fest_record(splt, lang='zh-CN'):
                                 str_top = f"{dict_lang['FesRecord.fest_ranking']}: #{n['rank']}"
                                 break
                     str_detail += f'{str_top}'
-        str_stage = f'''{s['startTime'][:10].replace('-', '/')}-{s['endTime'][8:10]}
+        str_stage = f'''{s['startTime'][:10].replace('-', '/')}-{s['endTime'][8:10]} {(s.get('lang') or '')[:2]}
 {s['title']}({s['myTeam']['teamName']})
 {teams}
 {str_detail}
