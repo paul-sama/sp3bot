@@ -15,13 +15,13 @@ S3S_NAMESPACE = uuid.UUID('b3a2dbf5-2c09-4792-b78c-00b548b70aeb')
 # full list: https://github.com/samuelthomas2774/nxapi/discussions/11#discussioncomment-3737698
 translate_rid = {
 	'HomeQuery':                       'dba47124d5ec3090c97ba17db5d2f4b3', # blank vars
-	'LatestBattleHistoriesQuery':      '7d8b560e31617e981cf7c8aa1ca13a00', # INK / blank vars - query1
-	'RegularBattleHistoriesQuery':     'f6e7e0277e03ff14edfef3b41f70cd33', # INK / blank vars - query1
-	'BankaraBattleHistoriesQuery':     'c1553ac75de0a3ea497cdbafaa93e95b', # INK / blank vars - query1
-	'PrivateBattleHistoriesQuery':     '38e0529de8bc77189504d26c7a14e0b8', # INK / blank vars - query1
-	'VsHistoryDetailQuery':            '2b085984f729cd51938fc069ceef784a', # INK / req "vsResultId" - query2
-	'CoopHistoryQuery':                '817618ce39bcf5570f52a97d73301b30', # SR  / blank vars - query1
-	'CoopHistoryDetailQuery':          'f3799a033f0a7ad4b1b396f9a3bafb1e', # SR  / req "coopHistoryDetailId" - query2
+	'LatestBattleHistoriesQuery':      '4f5f26e64bca394b45345a65a2f383bd', # INK / blank vars - query1
+	'RegularBattleHistoriesQuery':     'd5b795d09e67ce153e622a184b7e7dfa', # INK / blank vars - query1
+	'BankaraBattleHistoriesQuery':     'de4754588109b77dbcb90fbe44b612ee', # INK / blank vars - query1
+	'PrivateBattleHistoriesQuery':     '1d6ed57dc8b801863126ad4f351dfb9a', # INK / blank vars - query1
+	'VsHistoryDetailQuery':            '291295ad311b99a6288fc95a5c4cb2d2', # INK / req "vsResultId" - query2
+	'CoopHistoryQuery':                '4f5f26e64bca394b45345a65a2f383bd', # SR  / blank vars - query1
+	'CoopHistoryDetailQuery':          '4f5f26e64bca394b45345a65a2f383bd', # SR  / req "coopHistoryDetailId" - query2
 }
 
 def get_web_view_ver():
