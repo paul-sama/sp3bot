@@ -81,7 +81,8 @@ async def get_seed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     import utils
     history = splt._request(utils.gen_graphql_body(utils.translate_rid['LatestBattleHistoriesQuery']))
     outfit = splt._request(utils.gen_graphql_body('d29cd0c2b5e6bac90dd5b817914832f8'), skip_check_token=True)
-    uid = history["data"]["latestBattleHistories"]["historyGroupsOnlyFirst"]["nodes"][0]["historyDetails"]["nodes"][0]["player"]["id"]
+    b64_uid = history["data"]["latestBattleHistories"]["historyGroupsOnlyFirst"]["nodes"][0]["historyDetails"]["nodes"][0]["player"]["id"]
+    uid = base64.b64decode(b64_uid).decode('utf-8').split(":")[-1]
     f_p = get_seed_file(uid, outfit)
     if f_p:
         await context.bot.send_document(chat_id=user_id, document=open(f_p, 'rb'))

@@ -5,3 +5,4 @@ requests
 SQLAlchemy
 python-telegram-bot
 loguru
+mmh3
