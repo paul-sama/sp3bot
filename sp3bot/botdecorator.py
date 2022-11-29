@@ -55,6 +55,7 @@ def check_session_handler(func):
             if not user.session_token:
                 msg += ' please /login'
                 logger.info(msg)
+                logger.debug(update.message)
                 await ctx.bot.send_message(chat_id=user_id, text=msg)
                 return
 
@@ -66,7 +67,7 @@ def check_session_handler(func):
 
 async def send_bot_msg(ctx, **kwargs):
     try:
-        await ctx.bot.send_message(**kwargs)
+        return await ctx.bot.send_message(**kwargs)
     except Exception as e:
         logger.error(f'send_bot_msg: {kwargs}\n{e}')
 
