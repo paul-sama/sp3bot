@@ -46,7 +46,7 @@ class Splatoon:
             'Accept-Language': self.user_lang,
             'User-Agent': APP_USER_AGENT,
             # 'X-Web-View-Ver': utils.get_web_view_ver(),
-            'X-Web-View-Ver': '1.0.0-216d0219',
+            'X-Web-View-Ver': '2.0.0-8a061f6c',
             'Content-Type': 'application/json',
             'Accept': '*/*',
             'Origin': 'https://api.lp1.av5ja.srv.nintendo.net',

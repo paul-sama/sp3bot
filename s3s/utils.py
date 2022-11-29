@@ -20,8 +20,8 @@ translate_rid = {
 	'BankaraBattleHistoriesQuery':     'de4754588109b77dbcb90fbe44b612ee', # INK / blank vars - query1
 	'PrivateBattleHistoriesQuery':     '1d6ed57dc8b801863126ad4f351dfb9a', # INK / blank vars - query1
 	'VsHistoryDetailQuery':            '291295ad311b99a6288fc95a5c4cb2d2', # INK / req "vsResultId" - query2
-	'CoopHistoryQuery':                '4f5f26e64bca394b45345a65a2f383bd', # SR  / blank vars - query1
-	'CoopHistoryDetailQuery':          '4f5f26e64bca394b45345a65a2f383bd', # SR  / req "coopHistoryDetailId" - query2
+	'CoopHistoryQuery':                '6ed02537e4a65bbb5e7f4f23092f6154', # SR  / blank vars - query1
+	'CoopHistoryDetailQuery':          '3cc5f826a6646b85f3ae45db51bd0707', # SR  / req "coopHistoryDetailId" - query2
 }
 
 def get_web_view_ver():
