@@ -252,8 +252,12 @@ def get_summary(data, all_data, coop, lang='zh-CN'):
     s_time = dt.strptime(start_time, '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8)
 
     all_cnt = ''
+    r = ''
     if all_data:
-        all_cnt = f"/{all_data['data']['playHistory']['battleNumTotal']}"
+        total_cnt = all_data['data']['playHistory']['battleNumTotal']
+        all_cnt = f"/{total_cnt}"
+        if total_cnt:
+            r = f"{history['winCountTotal'] / total_cnt:.2%}"
 
     coop_msg = ''
     if coop:
@@ -279,7 +283,7 @@ def get_summary(data, all_data, coop, lang='zh-CN'):
 {player['byname']}
 {dict_lang['History.rank']}: {history['rank']}
 {dict_lang['History.highest_udemae']}: {history['udemaeMax']}
-{dict_lang['History.total_win']}: {history['winCountTotal']}{all_cnt}
+{dict_lang['History.total_win']}: {history['winCountTotal']}{all_cnt} {r}
 {dict_lang['History.total_turf_point']}: {history['paintPointTotal']:,}p
 {dict_lang['History.badge']}: {len(history['badges'])}
 {s_time:%Y-%m-%d %H:%M:%S} +08:00
