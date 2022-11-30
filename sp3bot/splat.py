@@ -50,12 +50,10 @@ class Splatoon:
         }
         url = f"{API_URL}/api/bullet_tokens"
         r = requests.post(url, headers=app_head, cookies=app_cookies)
-        if r.status_code == 200:
-            return r.json()
-        elif r.status_code == 201:
+        try:
             return r.json()['bulletToken']
-        else:
-            logger.error(f'{self.user_id} get_bullet error. {r.status_code}')
+        except Exception as e:
+            logger.error(f'{self.user_id} get_bullet error. {r.status_code}, {e}')
             logger.warning(r.text)
             raise Exception(f'{self.user_id} get_bullet error. {r.status_code}')
 
