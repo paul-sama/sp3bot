@@ -12,16 +12,18 @@ WEB_VIEW_VERSION = "1.0.0-5644e7a2" # fallback
 S3S_NAMESPACE = uuid.UUID('b3a2dbf5-2c09-4792-b78c-00b548b70aeb')
 
 # SHA256 hash database for SplatNet 3 GraphQL queries
-# full list: https://github.com/samuelthomas2774/nxapi/discussions/11#discussioncomment-3737698
+# full list: https://github.com/samuelthomas2774/nxapi/discussions/11#discussioncomment-3614603
 translate_rid = {
-	'HomeQuery':                       'dba47124d5ec3090c97ba17db5d2f4b3', # blank vars
-	'LatestBattleHistoriesQuery':      '4f5f26e64bca394b45345a65a2f383bd', # INK / blank vars - query1
-	'RegularBattleHistoriesQuery':     'd5b795d09e67ce153e622a184b7e7dfa', # INK / blank vars - query1
-	'BankaraBattleHistoriesQuery':     'de4754588109b77dbcb90fbe44b612ee', # INK / blank vars - query1
-	'PrivateBattleHistoriesQuery':     '1d6ed57dc8b801863126ad4f351dfb9a', # INK / blank vars - query1
-	'VsHistoryDetailQuery':            '291295ad311b99a6288fc95a5c4cb2d2', # INK / req "vsResultId" - query2
-	'CoopHistoryQuery':                '6ed02537e4a65bbb5e7f4f23092f6154', # SR  / blank vars - query1
-	'CoopHistoryDetailQuery':          '3cc5f826a6646b85f3ae45db51bd0707', # SR  / req "coopHistoryDetailId" - query2
+	'HomeQuery':                         'dba47124d5ec3090c97ba17db5d2f4b3', # blank vars
+	'LatestBattleHistoriesQuery':        '4f5f26e64bca394b45345a65a2f383bd', # INK / blank vars - query1
+	'RegularBattleHistoriesQuery':       'd5b795d09e67ce153e622a184b7e7dfa', # INK / blank vars - query1
+	'BankaraBattleHistoriesQuery':       'de4754588109b77dbcb90fbe44b612ee', # INK / blank vars - query1
+	'PrivateBattleHistoriesQuery':       '1d6ed57dc8b801863126ad4f351dfb9a', # INK / blank vars - query1
+	'XBattleHistoriesQuery':             '45c74fefb45a49073207229ca65f0a62', # INK / blank vars - query1
+	'VsHistoryDetailQuery':              '291295ad311b99a6288fc95a5c4cb2d2', # INK / req "vsResultId" - query2
+	'CoopHistoryQuery':                  '6ed02537e4a65bbb5e7f4f23092f6154', # SR  / blank vars - query1
+	'CoopHistoryDetailQuery':            '3cc5f826a6646b85f3ae45db51bd0707', # SR  / req "coopHistoryDetailId" - query2
+	'MyOutfitCommonDataEquipmentsQuery': 'd29cd0c2b5e6bac90dd5b817914832f8'  # for Lean's seed checker
 }
 
 def get_web_view_ver():

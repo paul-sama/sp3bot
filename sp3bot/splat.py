@@ -12,6 +12,9 @@ sys.path.append(f'{pth}/s3s')
 import iksm
 import utils
 
+API_URL = 'https://api.lp1.av5ja.srv.nintendo.net'
+WEB_VIEW_VERSION = '2.0.0-8a061f6c'
+
 
 class Splatoon:
 
@@ -28,10 +31,35 @@ class Splatoon:
             self.gtoken = user.gtoken
             self.user_lang = user.acc_loc if user.acc_loc else self.user_lang
 
+    def get_bullet(self, web_service_token, web_view_ver, app_user_agent, user_lang, user_country):
+        """Returns a bulletToken."""
+
+        app_head = {
+            'Content-Length': '0',
+            'Content-Type': 'application/json',
+            'Accept-Language': user_lang,
+            'User-Agent': app_user_agent,
+            'X-Web-View-Ver': web_view_ver,
+            'X-NACOUNTRY': user_country,
+            'Accept': '*/*',
+            'Origin': API_URL,
+            'X-Requested-With': 'com.nintendo.znca'
+        }
+        app_cookies = {
+            '_gtoken': web_service_token  # X-GameWebToken
+        }
+        url = f"{API_URL}/api/bullet_tokens"
+        r = requests.post(url, headers=app_head, cookies=app_cookies)
+        if r.status_code != 200:
+            logger.error(f'{self.user_id} get_bullet error. {r.status_code}')
+            raise Exception(f'{self.user_id} get_bullet error. {r.status_code}')
+        else:
+            return r.json()
+
     def set_gtoken_and_bullettoken(self):
         F_GEN_URL = 'https://api.imink.app/f'
         new_gtoken, acc_name, acc_lang, acc_country = iksm.get_gtoken(F_GEN_URL, self.session_token, A_VERSION)
-        new_bullettoken = iksm.get_bullet(new_gtoken, utils.get_web_view_ver(), APP_USER_AGENT, acc_lang, acc_country)
+        new_bullettoken = self.get_bullet(new_gtoken, WEB_VIEW_VERSION, APP_USER_AGENT, acc_lang, acc_country)
         self.gtoken = new_gtoken
         self.bullet_token = new_bullettoken
         logger.info(f'{self.user_id} tokens updated.')
@@ -45,13 +73,12 @@ class Splatoon:
             'Authorization': f'Bearer {bullet_token}',
             'Accept-Language': self.user_lang,
             'User-Agent': APP_USER_AGENT,
-            # 'X-Web-View-Ver': utils.get_web_view_ver(),
-            'X-Web-View-Ver': '2.0.0-8a061f6c',
+            'X-Web-View-Ver': WEB_VIEW_VERSION,
             'Content-Type': 'application/json',
             'Accept': '*/*',
-            'Origin': 'https://api.lp1.av5ja.srv.nintendo.net',
+            'Origin': API_URL,
             'X-Requested-With': 'com.nintendo.znca',
-            'Referer': f'https://api.lp1.av5ja.srv.nintendo.net/?lang={self.user_lang}&na_country={self.user_country}&na_lang={self.user_lang}',
+            'Referer': f'{API_URL}/?lang={self.user_lang}&na_country={self.user_country}&na_lang={self.user_lang}',
             'Accept-Encoding': 'gzip, deflate'
         }
         return graphql_head
