@@ -50,11 +50,14 @@ class Splatoon:
         }
         url = f"{API_URL}/api/bullet_tokens"
         r = requests.post(url, headers=app_head, cookies=app_cookies)
-        if r.status_code != 200:
-            logger.error(f'{self.user_id} get_bullet error. {r.status_code}')
-            raise Exception(f'{self.user_id} get_bullet error. {r.status_code}')
-        else:
+        if r.status_code == 200:
             return r.json()
+        elif r.status_code == 201:
+            return r.json()['bulletToken']
+        else:
+            logger.error(f'{self.user_id} get_bullet error. {r.status_code}')
+            logger.warning(r.text)
+            raise Exception(f'{self.user_id} get_bullet error. {r.status_code}')
 
     def set_gtoken_and_bullettoken(self):
         F_GEN_URL = 'https://api.imink.app/f'
