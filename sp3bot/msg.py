@@ -405,6 +405,8 @@ def get_stage_record(splt):
     stages = res['data']['stageRecords']['nodes']
     str_list = []
     for s in stages:
+        if not s.get('stats'):
+            s['stats'] = {'winRateAr': 0, 'winRateLf': 0, 'winRateGl': 0, 'winRateCl': 0}
         str_stage = f'''{s['name']}
 {s['stats']['winRateAr'] or 0:>7.2%} {s['stats']['winRateLf'] or 0:>7.2%} {s['stats']['winRateGl'] or 0:>7.2%} {s['stats']['winRateCl'] or 0:>7.2%}
 '''
@@ -414,6 +416,7 @@ def get_stage_record(splt):
 ```
 {''.join(str_list)}
 ```
+/my\_schedule
  '''
     return msg
 
