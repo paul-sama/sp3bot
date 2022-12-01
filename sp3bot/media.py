@@ -78,7 +78,9 @@ def get_stage_img(cur_hour=0):
 
     data = json.loads(res[0]['raw_data'])
     nodes = data['data']['bankaraSchedules']['nodes']
+    x_nodes = data['data']['xSchedules']['nodes']
 
+    idx = 0
     for n in nodes:
         date_start = dt.strptime(n['startTime'], '%Y-%m-%dT%H:%M:%S%z')
         if date_start.hour != cur_hour:
@@ -95,10 +97,12 @@ def get_stage_img(cur_hour=0):
 
         c_stages = n['bankaraMatchSettings'][0]['vsStages']
         o_stages = n['bankaraMatchSettings'][1]['vsStages']
+        x_stages = x_nodes[idx]['xMatchSetting']['vsStages']
 
         download_img([
             (c_stages[0]['name'], c_stages[0]['image']['url']), (c_stages[1]['name'], c_stages[1]['image']['url']),
-            (o_stages[0]['name'], o_stages[0]['image']['url']), (o_stages[1]['name'], o_stages[1]['image']['url'])
+            (o_stages[0]['name'], o_stages[0]['image']['url']), (o_stages[1]['name'], o_stages[1]['image']['url']),
+            (x_stages[0]['name'], x_stages[0]['image']['url']), (x_stages[1]['name'], x_stages[1]['image']['url']),
         ])
 
         dir_tmp = f'{IMG_DIR}images'
@@ -111,17 +115,22 @@ def get_stage_img(cur_hour=0):
         img_stage2 = get_img_path(c_stages[1]['name'], c_stages[1]['image']['url'])
         img_stage3 = get_img_path(o_stages[0]['name'], o_stages[0]['image']['url'])
         img_stage4 = get_img_path(o_stages[1]['name'], o_stages[1]['image']['url'])
+        img_stage5 = get_img_path(x_stages[0]['name'], x_stages[0]['image']['url'])
+        img_stage6 = get_img_path(x_stages[1]['name'], x_stages[1]['image']['url'])
         c_rule = base64.b64decode(n['bankaraMatchSettings'][0]['vsRule']['id']).decode('utf-8')
         o_rule = base64.b64decode(n['bankaraMatchSettings'][1]['vsRule']['id']).decode('utf-8')
+        x_rule = base64.b64decode(x_nodes[idx]['xMatchSetting']['vsRule']['id']).decode('utf-8')
 
         for c in [
             f'convert +append {img_rounded_border(img_stage1)} {img_rounded_border(img_stage2)} c.png',
             f'convert +append {img_rounded_border(img_stage3)} {img_rounded_border(img_stage4)} o.png',
-            f'convert -append  {c_rule}.png c.png {o_rule}.png o.png {path_img_schedule}'
+            f'convert +append {img_rounded_border(img_stage5)} {img_rounded_border(img_stage6)} x.png',
+            f'convert -append  {c_rule}.png c.png {o_rule}.png o.png {x_rule}.png x.png {path_img_schedule}'
         ]:
             logger.debug(c)
             os.system(c)
 
+        idx += 1
         if os.path.exists(path_img_schedule):
             logger.debug(f'set img: {path_img_schedule}')
             return path_img_schedule
