@@ -32,6 +32,7 @@ def download_img(img_list):
         if not os.path.exists(img_folder):
             os.makedirs(img_folder)
 
+        img_name = img_name.replace('/', '-')
         img_path = f'{img_folder}/{img_name}.png'
         if not os.path.exists(img_path):
             logger.debug(f'downloading new file: {img_name}.png')
@@ -41,6 +42,7 @@ def download_img(img_list):
 
 
 def get_img_path(name, url):
+    name = name.replace('/', '-')
     path = url.split('?')[0].split('nintendo.net/')[1].rsplit('/', 1)[0]
     img_path = f'{IMG_DIR}{path}/{name}.png'
     return img_path
