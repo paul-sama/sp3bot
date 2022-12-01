@@ -80,8 +80,9 @@ def get_stage_img(cur_hour=0):
     nodes = data['data']['bankaraSchedules']['nodes']
     x_nodes = data['data']['xSchedules']['nodes']
 
-    idx = 0
+    idx = -1
     for n in nodes:
+        idx += 1
         date_start = dt.strptime(n['startTime'], '%Y-%m-%dT%H:%M:%S%z')
         if date_start.hour != cur_hour:
             continue
@@ -130,7 +131,6 @@ def get_stage_img(cur_hour=0):
             logger.debug(c)
             os.system(c)
 
-        idx += 1
         if os.path.exists(path_img_schedule):
             logger.debug(f'set img: {path_img_schedule}')
             return path_img_schedule
