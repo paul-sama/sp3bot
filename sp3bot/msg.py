@@ -290,6 +290,7 @@ def get_summary(data, all_data, coop, lang='zh-CN'):
 {player['name']} #{player['nameId']}
 {player['byname']}
 {dict_lang['History.rank']}: {history['rank']}
+{dict_lang['History.udemae']}: {history['udemae']}
 {dict_lang['History.highest_udemae']}: {history['udemaeMax']}
 {dict_lang['History.total_win']}: {history['winCountTotal']}{all_cnt} {r}
 {dict_lang['History.total_turf_point']}: {history['paintPointTotal']:,}p
