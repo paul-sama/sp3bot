@@ -112,6 +112,35 @@ def get_point(**kwargs):
     return point, b_process
 
 
+def get_x_power(**kwargs):
+    try:
+        power = ''
+        x_process = ''
+        battle_detail = kwargs.get('battle_detail')
+        splt = kwargs.get('splt')
+        b_info = kwargs['b_info']
+
+        data = utils.gen_graphql_body(utils.translate_rid['XBattleHistoriesQuery'])
+        res = splt._request(data, skip_check_token=True)
+        hg = res['data']['xBattleHistories']['historyGroups']['nodes'][0]
+        x_info = hg['xMatchMeasurement']
+        if x_info['state'] == 'COMPLETED':
+            last_x_power = battle_detail['xMatch'].get('lastXPower') # 2076.430111782853
+            cur_x_power = x_info['xPowerAfter']
+            xp = cur_x_power - last_x_power
+            power = f'{xp:.2f} ({cur_x_power:.2f})'
+            if xp > 0:
+                power = f'+{power} ({cur_x_power:.2f})'
+        x_process = f"{x_info.get('winCount') or 0}-{x_info.get('loseCount') or 0}"
+
+    except Exception as e:
+        logger.exception(e)
+        power = ''
+        x_process = ''
+
+    return power, x_process
+
+
 def set_statics(**kwargs):
     try:
         current_statics = kwargs['current_statics']
@@ -201,10 +230,21 @@ def get_battle_msg_title(b_info, battle_detail, **kwargs):
     judgement = b_info['judgement']
     bankara_match = (battle_detail.get('bankaraMatch') or {}).get('mode') or ''
 
-    point, b_process = get_point(bankara_match=bankara_match, b_info=b_info, splt=kwargs.get('splt'))
+    point = 0
+    b_process = ''
+    if bankara_match:
+        point, b_process = get_point(bankara_match=bankara_match, b_info=b_info, splt=kwargs.get('splt'))
+    elif battle_detail.get('xMatch'):
+        point, b_process = get_x_power(battle_detail=battle_detail, b_info=b_info, splt=kwargs.get('splt'))
+
+    str_point = ''
     if bankara_match:
         bankara_match = f'({bankara_match})'
-    str_point = f'{point}p' if point else ''
+        if point:
+            str_point = f'{point}p'
+    elif battle_detail.get('xMatch'):
+        str_point = point
+        point = 0
 
     if mode == 'FEST':
         mode_id = b_info['vsMode']['id']
