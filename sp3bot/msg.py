@@ -277,6 +277,14 @@ def get_summary(data, all_data, coop, lang='zh-CN'):
 {dict_lang['CoopHistory.scale']}: 🥉{p['bronze']} 🥈{p['silver']} 🏅️{p['gold']}
 """
 
+    ar = (history.get('xMatchMaxAr') or {}).get('power') or 0
+    lf = (history.get('xMatchMaxLf') or {}).get('power') or 0
+    gl = (history.get('xMatchMaxGl') or {}).get('power') or 0
+    cl = (history.get('xMatchMaxCl') or {}).get('power') or 0
+    x_msg = ''
+    if any([ar, lf, gl, cl]):
+        x_msg = f"X max power:\n{ar:>7.2f}, {lf:>7.2f}, {gl:>7.2f}, {cl:>7.2f}"
+
     msg = f"""
 ```
 {player['name']} #{player['nameId']}
@@ -287,6 +295,7 @@ def get_summary(data, all_data, coop, lang='zh-CN'):
 {dict_lang['History.total_turf_point']}: {history['paintPointTotal']:,}p
 {dict_lang['History.badge']}: {len(history['badges'])}
 {s_time:%Y-%m-%d %H:%M:%S} +08:00
+{x_msg}
 {coop_msg}
 ```
 """
