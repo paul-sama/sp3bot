@@ -452,26 +452,25 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
         context.job.schedule_removal()
         return
 
+    push_cnt = user.push_cnt + 1
+    user = get_or_set_user(user_id=user_id, push_cnt=push_cnt)
+    if push_cnt % 60 == 0:
+        # show log every 10 minutes
+        logger.info(f'push_latest_battle: {user.username}, {chat_id}')
+
     data = context.job.data or {}
     res = await get_last_battle_or_coop(user_id, for_push=True)
     if not res:
-        logger.info('no new battle or coop')
+        logger.debug('no new battle or coop')
         return
     battle_id, _info, is_battle = res
 
     db_user_info = defaultdict(str)
-
     if user.user_info:
         db_user_info = json.loads(user.user_info)
         last_battle_id = db_user_info.get('battle_id')
         # logger.info(f'last_battle_id: {last_battle_id}')
         if last_battle_id == battle_id:
-            push_cnt = user.push_cnt + 1
-            if push_cnt % 60 == 0:
-                # show log every 10 minutes
-                logger.info(f'push_latest_battle: {user.username}, {chat_id}')
-
-            get_or_set_user(user_id=user_id, push_cnt=push_cnt)
             if push_cnt * INTERVAL / 60 > 30:
                 context.job.schedule_removal()
                 get_or_set_user(user_id=user_id, push=False)

@@ -58,6 +58,7 @@ def get_or_set_user(**kwargs):
                     logger.debug(f'update user {k}={v}')
                 setattr(user, k, v)
                 session.commit()
+            user = session.query(UserTable).filter(UserTable.id == user_id).first()
             session.close()
             return user
 
