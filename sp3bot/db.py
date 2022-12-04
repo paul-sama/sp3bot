@@ -32,7 +32,7 @@ class UserTable(Base):
     user_info = Column(Text(), nullable=True)
 
 
-engine = create_engine(configs.DATABASE_URI)
+engine = create_engine(configs.DATABASE_URI, connect_args={"check_same_thread": False})
 
 Base.metadata.create_all(engine)
 
@@ -58,7 +58,7 @@ def get_or_set_user(**kwargs):
                     logger.debug(f'update user {k}={v}')
                 setattr(user, k, v)
                 session.commit()
-            # session.close()
+            session.close()
             return user
 
         logger.info('create user to db')
@@ -71,7 +71,7 @@ def get_or_set_user(**kwargs):
 
         session.add(user)
         session.commit()
-        # session.close()
+        session.close()
         return user
     except Exception as e:
         logger.error(f'get_or_set_user error: {e}')

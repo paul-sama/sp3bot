@@ -72,15 +72,3 @@ async def send_bot_msg(ctx, **kwargs):
         logger.error(f'send_bot_msg: {kwargs}\n{e}')
         if not kwargs.get('text'):
             return
-
-        retry = 5
-        while retry > 0:
-            try:
-                x = await ctx.bot.send_message(**kwargs)
-                if isinstance(x, Message):
-                    logger.info(f'send success {abs(retry - 6)}: {x.message_id}')
-                    break
-            except Exception as e:
-                logger.error(f'retry failed, {abs(retry - 6)}, {kwargs.get("chat_id")}: {e}')
-                retry -= 1
-                time.sleep(1 + abs(retry - 5) * 5)
