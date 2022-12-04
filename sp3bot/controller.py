@@ -2,6 +2,8 @@ import base64
 import json
 import os
 import time
+import asyncio
+import threading
 from collections import defaultdict
 from datetime import datetime as dt
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Message, WebAppInfo
@@ -563,68 +565,71 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
     now = dt.now()
     data = context.job.data or {}
     user_id = data.get('user_id')
-    # run every 3 hours
 
+    # check msg file every minute and send msg, can't send msg in thread
+    pth_sp3bot = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    users = get_all_user()
+    for u in users:
+        if not u.api_key:
+            continue
+        file_msg_path = os.path.join(pth_sp3bot, 's3s_user', f'msg_{u.id}.txt')
+        if os.path.exists(file_msg_path):
+            logger.bind(cron=True).debug(f"get msg file: {file_msg_path}")
+            with open(file_msg_path, 'r') as f:
+                msg = f.read()
+            if msg:
+                try:
+                    ret = await context.bot.send_message(chat_id=u.id, text=msg, disable_web_page_preview=True)
+                    if isinstance(ret, Message):
+                        logger.bind(cron=True).info(f"{u.id} send message: {ret.text}")
+                except Exception as e:
+                    logger.bind(cron=True).error(f"{u.id}, post_battle_to_stat_ink: {e}, {msg}")
+            os.remove(file_msg_path)
+
+    # run every 3 hours
     if not user_id:
         if not (now.hour % 3 == 0 and now.minute == 0):
             return
 
     logger.bind(cron=True).debug(f"crontab_job")
     users = get_all_user()
-    u_list = []
     for u in users:
         if not u.api_key:
             continue
         if user_id and user_id != u.id:
             continue
-        u_list.append(u)
 
-    if not u_list:
-        logger.bind(cron=True).debug(f"no user need to run crontab_job")
-        return
+        _thread = threading.Thread(target=asyncio.run, args=(thread_function(pth_sp3bot, u.id),))
+        _thread.start()
 
-    update_s3si_ts()
 
-    from concurrent.futures import ThreadPoolExecutor
-    thread_pool = ThreadPoolExecutor(max_workers=5)
+async def thread_function(pth_sp3bot, user_id):
+    u = get_or_set_user(user_id=user_id)
+    res = exported_to_stat_ink(u.id, u.session_token, u.api_key, u.acc_loc)
+    u_id = u.id
+    logger.bind(cron=True).debug(f"get user: {u.username}, have api_key: {u.api_key}")
 
-    idx = 0
-    for res in thread_pool.map(exported_to_stat_ink,
-                               [u.id for u in u_list],
-                               [u.session_token for u in u_list],
-                               [u.api_key for u in u_list],
-                               [u.acc_loc for u in u_list]):
-        u = u_list[idx]
-        idx += 1
-        u_id = u.id
-        logger.bind(cron=True).debug(f"get user: {u.username}, have api_key: {u.api_key}")
+    if res:
+        battle_cnt, coop_cnt, url = res
+        msg = 'Exported'
+        if battle_cnt:
+            msg += f' {battle_cnt} battles'
+        if coop_cnt:
+            msg += f' {coop_cnt} jobs'
 
-        if res:
-            chat_id = u.id
-            battle_cnt, coop_cnt, url = res
-            msg = 'Exported'
-            if battle_cnt:
-                msg += f' {battle_cnt} battles'
-            if coop_cnt:
-                msg += f' {coop_cnt} jobs'
+        if battle_cnt and not coop_cnt:
+            url += '/spl3'
+        elif coop_cnt and not battle_cnt:
+            url += '/salmon3'
+        msg += f' to\n{url}'
 
-            if battle_cnt and not coop_cnt:
-                url += '/spl3'
-            elif coop_cnt and not battle_cnt:
-                url += '/salmon3'
-            msg += f' to\n{url}'
-            while True:
-                try:
-                    ret = await context.bot.send_message(chat_id=chat_id, text=msg, disable_web_page_preview=True)
-                    if isinstance(ret, Message):
-                        logger.bind(cron=True).info(f"{chat_id} send message: {ret.text}")
-                        break
-                except Exception as e:
-                    logger.bind(cron=True).error(f"post_battle_to_stat_ink: {e}")
-                    time.sleep(5)
+        logger.bind(cron=True).info(f'{u.id}, {u.username}, {msg}')
+        file_msg_path = os.path.join(pth_sp3bot, 's3s_user', f'msg_{u.id}.txt')
+        with open(file_msg_path, 'w') as f:
+            f.write(msg)
 
-            db_user_info = defaultdict(str)
-            if u.user_info:
-                db_user_info = json.loads(u.user_info)
-            db_user_info['url_stat_ink'] = url.replace('/spl3', '').replace('/salmon3', '')
-            get_or_set_user(user_id=u_id, user_info=json.dumps(db_user_info))
+        db_user_info = defaultdict(str)
+        if u.user_info:
+            db_user_info = json.loads(u.user_info)
+        db_user_info['url_stat_ink'] = url.replace('/spl3', '').replace('/salmon3', '')
+        get_or_set_user(user_id=u_id, user_info=json.dumps(db_user_info))
