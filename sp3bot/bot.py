@@ -9,7 +9,8 @@ from configs import TELEGRAM_BOT_TOKEN
 
 
 def main():
-    application = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).concurrent_updates(True).build()
+    application = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).concurrent_updates(True)\
+        .read_timeout(30).write_timeout(30).build()
 
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
