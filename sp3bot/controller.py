@@ -591,6 +591,8 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
             return
 
     logger.bind(cron=True).debug(f"crontab_job")
+
+    update_s3si_ts()
     users = get_all_user()
     for u in users:
         if not u.api_key:
