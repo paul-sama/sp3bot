@@ -581,9 +581,9 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
                     ret = await context.bot.send_message(chat_id=u.id, text=msg, disable_web_page_preview=True)
                     if isinstance(ret, Message):
                         logger.bind(cron=True).info(f"{u.id} send message: {ret.text}")
+                        os.remove(file_msg_path)
                 except Exception as e:
                     logger.bind(cron=True).error(f"{u.id}, post_battle_to_stat_ink: {e}, {msg}")
-            os.remove(file_msg_path)
 
     # run every 3 hours
     if not user_id:
