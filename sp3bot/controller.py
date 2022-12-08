@@ -62,7 +62,7 @@ async def coop_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_photo(chat_id=chat_id, photo=open(f_p, 'rb'), caption=text)
     except Exception as e:
         logger.error(e)
-        await context.bot.send_message(chat_id=chat_id, text=text, parse_mode='Markdown')
+        await send_bot_msg(context, chat_id=chat_id, text=text, parse_mode='Markdown')
 
 
 @check_user_handler
