@@ -42,6 +42,9 @@ def check_session_handler(func):
         ctx = args[1]
         if isinstance(args[0], Update):
             update = args[0]
+            if not update.effective_user:
+                logger.debug(f'{func.__name__:>20}, effective_user is none, update: {update}')
+                return
             user_id = update.effective_user.id
             user_name = update.effective_user.username
             first_name = update.effective_user.first_name

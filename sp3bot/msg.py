@@ -529,12 +529,12 @@ def get_fest_record(splt, lang='zh-CN'):
 
 
 def get_my_schedule(splt):
-    data = utils.gen_graphql_body('7d4bb0565342b7385ceb97d109e14897')
+    data = utils.gen_graphql_body('730cd98e84f1030d3e9ac86b6f1aae13')
     res = splt._request(data)
     if not res:
         return 'No schedule found!'
 
-    data = utils.gen_graphql_body('56c46bdbdfa4519eaf7845ce9f3cd67a')
+    data = utils.gen_graphql_body('f08a932d533845dde86e674e03bbb7d3')
     stage_record = splt._request(data, skip_check_token=True)
 
     dict_stage = {}

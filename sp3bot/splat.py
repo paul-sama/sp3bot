@@ -132,7 +132,7 @@ class Splatoon:
         return res
 
     def get_summary(self, skip_check_token=False):
-        data = utils.gen_graphql_body('9d4ef9fba3f84d6933bb1f6f436f7200')
+        data = utils.gen_graphql_body('32b6771f94083d8f04848109b7300af5')
         res = self._request(data, skip_check_token)
         return res
 
@@ -142,6 +142,6 @@ class Splatoon:
         return res
 
     def get_coop_summary(self, skip_check_token=True):
-        data = utils.gen_graphql_body('817618ce39bcf5570f52a97d73301b30')
+        data = utils.gen_graphql_body('2fd21f270d381ecf894eb975c5f6a716')
         res = self._request(data, skip_check_token)
         return res
