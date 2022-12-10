@@ -6,11 +6,12 @@ from .controller import (
     set_lang, lang_button, weapon_record, stage_record, fest_record, my_schedule, set_battle_info, get_seed
 )
 from configs import TELEGRAM_BOT_TOKEN
+TMT = 60
 
 
 def main():
-    application = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).concurrent_updates(True)\
-        .read_timeout(30).write_timeout(30).build()
+    application = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).concurrent_updates(True) \
+        .read_timeout(TMT).write_timeout(TMT).connect_timeout(TMT).pool_timeout(TMT).build()
 
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
