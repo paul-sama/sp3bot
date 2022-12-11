@@ -165,7 +165,8 @@ def get_coop_img():
     for idx, n in enumerate(nodes):
         pth_node = f'{IMG_DIR}images/coop_node_{idx}.png'
         weapons = n['setting']['weapons']
-        cmd = f'convert +append coop_stage_{n["setting"]["coopStage"]["coopStageId"]}.png '
+        c_id = base64.b64decode(n["setting"]["coopStage"]["id"]).decode('utf-8')[-1:]
+        cmd = f'convert +append coop_stage_{c_id}.png '
         for w in weapons:
             download_img([
                 (w['name'], w['image']['url'])
