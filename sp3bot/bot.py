@@ -3,7 +3,8 @@ from telegram.ext import filters, MessageHandler, ApplicationBuilder, ContextTyp
 from .controller import (
     start, help_msg, schedule, full_schedule, coop_schedule, mall, unknown, unknown_text, set_token, login, last,
     start_push, stop_push, set_api_key, show_db_info, clear_db_info, crontab_job, me, check_push_job,
-    set_lang, lang_button, weapon_record, stage_record, fest_record, my_schedule, set_battle_info, get_seed
+    set_lang, lang_button, weapon_record, stage_record, fest_record, my_schedule, set_battle_info, get_seed,
+    error_handler
 )
 from configs import TELEGRAM_BOT_TOKEN
 TMT = 60
@@ -42,6 +43,9 @@ def main():
     # Other handlers
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.add_handler(MessageHandler(filters.ALL, unknown_text))
+
+    # ...and the error handler
+    application.add_error_handler(error_handler)
 
     job_queue = application.job_queue
     job_queue.run_once(check_push_job, 1, job_queue)
