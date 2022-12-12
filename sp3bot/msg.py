@@ -420,7 +420,7 @@ WIN_RATE: {data['WIN'] / data['TOTAL']:.2%}
 
 def get_weapon_record(splt, lang='zh-CN'):
     dict_lang = get_dict_lang(lang)
-    data = utils.gen_graphql_body('a0c277c719b758a926772879d8e53ef8')
+    data = utils.gen_graphql_body('5f279779e7081f2d14ae1ddca0db2b6e')
     res = splt._request(data, skip_check_token=True)
     if not res:
         return '`Network error, try again`'
@@ -448,7 +448,7 @@ def get_weapon_record(splt, lang='zh-CN'):
 
 
 def get_stage_record(splt):
-    data = utils.gen_graphql_body('56c46bdbdfa4519eaf7845ce9f3cd67a')
+    data = utils.gen_graphql_body('f08a932d533845dde86e674e03bbb7d3')
     res = splt._request(data, skip_check_token=True)
     if not res:
         return '`Network error, try again`'
@@ -482,7 +482,7 @@ def get_fest_record(splt, lang='zh-CN'):
         fest_id = s['id']
         teams = ', '.join((f"{i['teamName']}{'🏆' if i['result']['isWinner'] else ''}" for i in s['teams']))
 
-        _d = utils.gen_graphql_body('2d661988c055d843b3be290f04fb0db9', varname='festId', varvalue=fest_id)
+        _d = utils.gen_graphql_body('96c3a7fd484b8d3be08e0a3c99eb2a3d', varname='festId', varvalue=fest_id)
         fes_detail = splt._request(_d, skip_check_token=True)
         str_detail = ''
         if fes_detail:
@@ -501,16 +501,19 @@ def get_fest_record(splt, lang='zh-CN'):
                 if max_power:
                     my_name = fes_detail['data']['currentPlayer']['name']
                     my_team = fes_detail['data']['fest']['myTeam']['teamName']
-                    _d = utils.gen_graphql_body('58bdd28e3cf71c3bf38bc45836ee1e96', varname='festId', varvalue=fest_id)
-                    top_res = splt._request(_d, skip_check_token=True)
+                    try:
+                        _d = utils.gen_graphql_body('4869de13d0d209032b203608cb598aef', varname='festId', varvalue=fest_id)
+                        top_res = splt._request(_d, skip_check_token=True)
 
-                    for t in top_res['data']['fest']['teams']:
-                        if t['teamName'] != my_team:
-                            continue
-                        for n in t['result']['rankingHolders']['nodes']:
-                            if n['name'] == my_name and int(max_power) == int(n['festPower']):
-                                str_top = f"{dict_lang['FesRecord.fest_ranking']}: #{n['rank']}"
-                                break
+                        for t in top_res['data']['fest']['teams']:
+                            if t['teamName'] != my_team:
+                                continue
+                            for n in t['result']['rankingHolders']['nodes']:
+                                if n['name'] == my_name and int(max_power) == int(n['festPower']):
+                                    str_top = f"{dict_lang['FesRecord.fest_ranking']}: #{n['rank']}"
+                                    break
+                    except Exception as e:
+                        logger.error(e)
                     str_detail += f'{str_top}'
         str_stage = f'''{s['startTime'][:10].replace('-', '/')}-{s['endTime'][8:10]} {(s.get('lang') or '')[:2]}
 {s['title']}({s['myTeam']['teamName']})
