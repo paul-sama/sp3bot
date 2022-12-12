@@ -13,7 +13,7 @@ import iksm
 import utils
 
 API_URL = 'https://api.lp1.av5ja.srv.nintendo.net'
-WEB_VIEW_VERSION = '2.0.0-8a061f6c'
+WEB_VIEW_VERSION = '2.0.0-bd36a652'
 
 
 class Splatoon:
