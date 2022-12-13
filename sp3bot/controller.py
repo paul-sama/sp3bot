@@ -561,6 +561,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     # list of strings rather than a single string, so we have to join them together.
     tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
     tb_string = "".join(tb_list)
+    logger.error(f"Traceback: {tb_string}")
 
     # Build the message with some markup and additional information about what happened.
     # You might need to add some logic to deal with messages longer than the 4096 character limit.
