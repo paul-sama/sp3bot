@@ -86,7 +86,7 @@ class Splatoon:
 
     def test_page(self):
         data = utils.gen_graphql_body(utils.translate_rid["HomeQuery"])
-        t = time.time()
+        # t = time.time()
         test = requests.post(utils.GRAPHQL_URL, data=data,
                              headers=self.headbutt(self.bullet_token), cookies=dict(_gtoken=self.gtoken))
         # logger.debug(f'_test_page: {time.time() - t:.3f}s')

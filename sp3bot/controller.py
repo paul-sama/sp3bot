@@ -2,7 +2,6 @@ import base64
 import json
 import html
 import os
-import time
 import traceback
 import asyncio
 import threading
@@ -86,7 +85,7 @@ async def get_seed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sys.path.append(f'{pth}/s3s')
     import utils
     history = splt._request(utils.gen_graphql_body(utils.translate_rid['LatestBattleHistoriesQuery']))
-    outfit = splt._request(utils.gen_graphql_body('d29cd0c2b5e6bac90dd5b817914832f8'), skip_check_token=True)
+    outfit = splt._request(utils.gen_graphql_body(utils.translate_rid['MyOutfitCommonDataEquipmentsQuery']), skip_check_token=True)
     b64_uid = history["data"]["latestBattleHistories"]["historyGroupsOnlyFirst"]["nodes"][0]["historyDetails"]["nodes"][0]["player"]["id"]
     uid = base64.b64decode(b64_uid).decode('utf-8').split(":")[-1]
     f_p = get_seed_file(uid, outfit)
@@ -499,7 +498,7 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
 async def stop_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
-    user = get_or_set_user(user_id=user_id, push=False)
+    get_or_set_user(user_id=user_id, push=False)
     msg = f'Stop push!'
     current_statics = context.user_data.get('current_statics')
     if current_statics:

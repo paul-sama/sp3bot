@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time
 import functools
 from loguru import logger
-from telegram import Update, Message
+from telegram import Update
 from .db import get_or_set_user
 
 
