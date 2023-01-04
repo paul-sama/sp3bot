@@ -382,7 +382,7 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
         InlineKeyboardButton('️🎊', callback_data=f'/fes_record')
     ]
 
-    if user.api_key:
+    if user.api_key and getattr(getattr(update.message, "chat", ""), "type", "") == 'private':
         if user.user_info:
             user_info = json.loads(user.user_info)
             url = user_info.get('url_stat_ink')
