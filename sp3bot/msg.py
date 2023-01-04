@@ -29,6 +29,7 @@ DICT_RANK_POINT = {
 MSG_HELP = """
 /login - login
 /me - show your info
+/friends - show online friends
 /last - show the last battle or coop
 /start_push - start push mode
 /my_schedule - my schedule
