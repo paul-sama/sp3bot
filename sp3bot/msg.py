@@ -508,10 +508,49 @@ def get_fest_record(splt, lang='zh-CN'):
                         for t in top_res['data']['fest']['teams']:
                             if t['teamName'] != my_team:
                                 continue
-                            for n in t['result']['rankingHolders']['nodes']:
+
+                            my_team_id = t['id']
+                            for n in t['result']['rankingHolders']['edges']:
+                                n = n['node']
                                 if n['name'] == my_name and int(max_power) == int(n['festPower']):
                                     str_top = f"{dict_lang['FesRecord.fest_ranking']}: #{n['rank']}"
                                     break
+
+                            has_next_page = t['result']['rankingHolders']['pageInfo']['hasNextPage']
+                            cursor = t['result']['rankingHolders']['pageInfo']['endCursor']
+                            cnt = 0
+                            while True:
+                                if not has_next_page:
+                                    break
+                                _d = {
+                                    "extensions": {
+                                        "persistedQuery": {
+                                            "sha256Hash": 'be2eb9e9b8dd680519eb59cc46c1a32b',
+                                            "version": 1
+                                        }
+                                    },
+                                    "variables": {
+                                        'cursor': cursor,
+                                        'first': 25,
+                                        'id': my_team_id
+                                    }
+                                }
+                                _d = json.dumps(_d)
+                                page_top_res = splt._request(_d, skip_check_token=True)
+                                for n in page_top_res['data']['node']['result']['rankingHolders']['edges']:
+                                    n = n['node']
+                                    if n['name'] == my_name and int(max_power) == int(n['festPower']):
+                                        str_top = f"{dict_lang['FesRecord.fest_ranking']}: #{n['rank']}"
+                                        break
+                                cursor = page_top_res['data']['node']['result']['rankingHolders']['pageInfo']['endCursor']
+                                has_next_page = page_top_res['data']['node']['result']['rankingHolders']['pageInfo']['hasNextPage']
+                                logger.debug(f'get page:{my_team},  {cursor}, {has_next_page}')
+                                if not has_next_page:
+                                    break
+                                cnt += 1
+                                if cnt > 5:
+                                    break
+
                     except Exception as e:
                         logger.error(e)
                     str_detail += f'{str_top}'
