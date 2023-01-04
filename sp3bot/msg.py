@@ -480,7 +480,7 @@ def get_fest_record(splt, lang='zh-CN'):
     str_list = []
     for s in records:
         fest_id = s['id']
-        teams = ', '.join((f"{i['teamName']}{'🏆' if i['result']['isWinner'] else ''}" for i in s['teams']))
+        teams = ', '.join((f"{i['teamName']}{'🏆' if (i['result'] or {}).get('isWinner') else ''}" for i in s['teams']))
 
         _d = utils.gen_graphql_body('96c3a7fd484b8d3be08e0a3c99eb2a3d', varname='festId', varvalue=fest_id)
         fes_detail = splt._request(_d, skip_check_token=True)
