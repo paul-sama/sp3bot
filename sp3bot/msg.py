@@ -632,3 +632,21 @@ def get_r(_dict, stage_id, rule_id):
         return f'{rate:.2%}'
     rate = _dict[stage_id].get(rule_id) or 0
     return f'{rate:.2%}'
+
+
+def get_friends(splt, lang='zh-CN'):
+    data = utils.gen_graphql_body('f0a8ebc384cf5fbac01e8085fbd7c898')
+    res = splt._request(data)
+    if not res:
+        return 'No friends found!'
+
+    msg = ''
+    for f in res['data']['friends']['nodes']:
+        if f.get('onlineState') == 'OFFLINE':
+            continue
+        n = f['playerName'] or f.get('nickname')
+        if f['playerName'] and f['playerName'] != f['nickname']:
+            n = f'{f["playerName"]}({f["nickname"]})'
+        msg += f'''{n}\t\t {f['onlineState']}\n'''
+    msg = f'```\n{msg}\n```'
+    return msg
