@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from datetime import datetime as dt, timedelta
+from collections import defaultdict
 from loguru import logger
 pth = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pth)
@@ -641,12 +642,18 @@ def get_friends(splt, lang='zh-CN'):
         return 'No friends found!'
 
     msg = ''
+    _dict = defaultdict(int)
     for f in res['data']['friends']['nodes']:
-        if f.get('onlineState') == 'OFFLINE':
+        _state = f.get('onlineState')
+        if _state == 'OFFLINE':
             continue
+        _dict[_state] += 1
         n = f['playerName'] or f.get('nickname')
         if f['playerName'] and f['playerName'] != f['nickname']:
             n = f'{f["playerName"]}({f["nickname"]})'
         msg += f'''{n}\t\t {f['onlineState']}\n'''
     msg = f'```\n{msg}\n```'
+    _dict['TOTAL'] = sum(_dict.values())
+    for k, v in _dict.items():
+        msg += f'`{k:>20}: {v}`\n'
     return msg
