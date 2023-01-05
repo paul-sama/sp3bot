@@ -665,6 +665,15 @@ def get_friends(splt, lang='zh-CN'):
                     _state += 'O'
                 else:
                     _state += 'C'
+
+            elif f['vsMode']['mode'] == 'FEST':
+                mod_id = f['vsMode']['id']
+                if mod_id == 'VnNNb2RlLTY=':
+                    _state += 'O'
+                elif mod_id == 'VnNNb2RlLTg=':
+                    _state += '3'
+                else:
+                    _state += 'C'
         _dict[_state] += 1
         n = f['playerName'] or f.get('nickname')
         if f['playerName'] and f['playerName'] != f['nickname']:
