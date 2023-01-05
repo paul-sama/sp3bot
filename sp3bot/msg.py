@@ -648,11 +648,18 @@ def get_friends(splt, lang='zh-CN'):
         _state = f.get('onlineState')
         if _state == 'OFFLINE':
             continue
+        if _state == 'VS_MODE_FIGHTING':
+            _state = f'VS_MODE ({f["vsMode"]["mode"]})'
+            if f['vsMode']['mode'] == 'BANKARA':
+                if f['vsMode']['id'] == 'VnNNb2RlLTUx':
+                    _state += 'O'
+                else:
+                    _state += 'C'
         _dict[_state] += 1
         n = f['playerName'] or f.get('nickname')
         if f['playerName'] and f['playerName'] != f['nickname']:
             n = f'{f["playerName"]}({f["nickname"]})'
-        msg += f'''{n}\t\t {f['onlineState']}\n'''
+        msg += f'''{n}\t\t {_state}\n'''
     msg = f'```\n{msg}\n```'
     _dict['TOTAL'] = sum(_dict.values())
     for k, v in _dict.items():
