@@ -386,6 +386,16 @@ def get_coop_msg(c_point, data):
 """
     for p in detail['memberResults']:
         msg += f"""{coop_row(p)}\n"""
+    msg += '\n'
+    for e in detail['enemyResults']:
+        c = str(e.get('teamDefeatCount') or 0)
+        nice = ''
+        if e.get('popCount') <= int(c):
+            nice = '√'
+        if e.get('defeatCount'):
+            c += f"({e['defeatCount']}"
+        c += f" /{e['popCount']:<2}"
+        msg += f"""`{c:>8}\t{(e.get('enemy') or {}).get('name') or ''} {nice}`\n"""
     # logger.info(msg)
     return msg
 
