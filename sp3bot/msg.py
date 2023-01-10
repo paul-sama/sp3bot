@@ -505,7 +505,7 @@ def get_fest_record(splt, lang='zh-CN'):
                 ttl = dict_lang['FesRecord.total']
                 tri_c = ''
                 if p_r.get('tricolorContributionEnabled'):
-                    tri_c = f'贡献度 三色夺宝比赛: {avg}: {p_r.get("tricolorContributionAverage") or 0} {ttl}: {p_r.get("tricolorContributionTotal") or 0}\n'
+                    tri_c = f'{dict_lang["FesRecord.contribution_tricolor"]}: {avg}: {p_r.get("tricolorContributionAverage") or 0} {ttl}: {p_r.get("tricolorContributionTotal") or 0}\n'
                 str_detail = f'''{p_r.get('grade')}
 {dict_lang['FesRecord.got_horagai']}: {p_r.get('horagai') or 0}
 {dict_lang['FesRecord.contribution_regular']}: {avg} {p_r.get('regularContributionAverage') or 0}, {ttl} {p_r.get('regularContributionTotal') or 0}
