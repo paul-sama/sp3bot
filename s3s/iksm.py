@@ -90,13 +90,13 @@ def log_in(ver):
 			return get_session_token(session_token_code.group(1), auth_code_verifier)
 		except KeyboardInterrupt:
 			print("\nBye!")
-			sys.exit(1)
+			return
 		except AttributeError:
 			print("Malformed URL. Please try again, or press Ctrl+C to exit.")
 			print("URL:", end=' ')
 		except KeyError: # session_token not found
 			print("\nThe URL has expired. Please log out and back into your Nintendo Account and try again.")
-			sys.exit(1)
+			return
 
 
 def get_session_token(session_token_code, auth_code_verifier):
@@ -170,7 +170,7 @@ def get_gtoken(f_gen_url, session_token, ver):
 		print("Not a valid authorization request. Please delete config.txt and try again.")
 		print("Error from Nintendo (in api/token step):")
 		print(json.dumps(id_response, indent=2))
-		sys.exit(1)
+		return
 
 	url = "https://api.accounts.nintendo.com/2.0.0/users/me"
 	r = requests.get(url, headers=app_head)
@@ -196,12 +196,12 @@ def get_gtoken(f_gen_url, session_token, ver):
 			'timestamp':  timestamp
 		}
 	except SystemExit:
-		sys.exit(1)
+		return
 	except:
 		print("Error(s) from Nintendo:")
 		print(json.dumps(id_response, indent=2))
 		print(json.dumps(user_info, indent=2))
-		sys.exit(1)
+		return
 	body["parameter"] = parameter
 
 	app_head = {
@@ -236,7 +236,7 @@ def get_gtoken(f_gen_url, session_token, ver):
 			print("Error from Nintendo (in Account/Login step):")
 			print(json.dumps(splatoon_token, indent=2))
 			print("Re-running the script usually fixes this.")
-			sys.exit(1)
+			return
 
 		f, uuid, timestamp = call_imink_api(id_token, 2, f_gen_url)
 
@@ -281,7 +281,7 @@ def get_gtoken(f_gen_url, session_token, ver):
 		except:
 			print("Error from Nintendo (in Game/GetWebServiceToken step):")
 			print(json.dumps(web_service_resp, indent=2))
-			sys.exit(1)
+			return
 
 	return web_service_token, user_nickname, user_lang, user_country
 
@@ -308,13 +308,13 @@ def get_bullet(web_service_token, web_view_ver, app_user_agent, user_lang, user_
 
 	if r.status_code == 401:
 		print("Unauthorized error (ERROR_INVALID_GAME_WEB_TOKEN). Cannot fetch tokens at this time.")
-		sys.exit(1)
+		return
 	elif r.status_code == 403:
 		print("Forbidden error (ERROR_OBSOLETE_VERSION). Cannot fetch tokens at this time.")
-		sys.exit(1)
+		return
 	elif r.status_code == 204: # No Content, USER_NOT_REGISTERED
 		print("Cannot access SplatNet 3 without having played online.")
-		sys.exit(1)
+		return
 
 	try:
 		bullet_resp = json.loads(r.text)
@@ -322,11 +322,11 @@ def get_bullet(web_service_token, web_view_ver, app_user_agent, user_lang, user_
 	except (json.decoder.JSONDecodeError, TypeError):
 		print("Got non-JSON response from Nintendo (in api/bullet_tokens step:")
 		print(bullet_resp)
-		sys.exit(1)
+		return
 	except:
 		print("Error from Nintendo (in api/bullet_tokens step):")
 		print(json.dumps(bullet_resp, indent=2))
-		sys.exit(1)
+		return
 
 	return bullet_token
 
@@ -359,7 +359,7 @@ def call_imink_api(id_token, step, f_gen_url):
 		except:
 			print(f"Couldn't connect to f generation API ({f_gen_url}). Please try again.")
 
-		sys.exit(1)
+		return
 
 
 def enter_tokens():
