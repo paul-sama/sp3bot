@@ -110,7 +110,7 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @check_session_handler
 async def unknown_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
+    text = getattr(update.message, "text", "")
     if text and len(text) > 500 and text.startswith('npf'):
         user_id = update.effective_user.id
         await set_session_token(context, user_id, text)
