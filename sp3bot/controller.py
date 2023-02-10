@@ -646,7 +646,7 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
     update_s3si_ts()
     users = get_all_user()
     for u in users:
-        if not u.api_key:
+        if not u.api_key or not u.session_token:
             continue
         if user_id and user_id != u.id:
             continue
