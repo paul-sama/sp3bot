@@ -620,7 +620,7 @@ async def crontab_job(context: ContextTypes.DEFAULT_TYPE):
     pth_sp3bot = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     users = get_all_user()
     for u in users:
-        if not u.api_key:
+        if not u.api_key or not u.session_token:
             continue
         file_msg_path = os.path.join(pth_sp3bot, 's3s_user', f'msg_{u.id}.txt')
         if os.path.exists(file_msg_path):
