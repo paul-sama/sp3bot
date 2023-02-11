@@ -222,7 +222,18 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
         fest_power = (battle_detail.get('festMatch') or {}).get('myFestPower')
         msg += f'\n`{b_info["player"]["festGrade"]}`'
         if fest_power:
-            msg += f' ({fest_power:.2f})'
+            current_statics = {}
+            if 'current_statics' in kwargs:
+                current_statics = kwargs['current_statics']
+            last_power = current_statics.get('fest_power') or 0
+            current_statics['fest_power'] = fest_power
+            if last_power:
+                diff = fest_power - last_power
+                if diff >= 0:
+                    msg += f' `+{diff:.2f}`'
+                else:
+                    msg += f' `{diff:.2f}`'
+            msg += f'`({fest_power:.2f})`'
     # print(msg)
     return msg
 
@@ -412,7 +423,7 @@ def get_statics(data):
         my_str += f"{data.get('KA', 0)} {data.get('K', 0)}+{data.get('A', 0)}k {data.get('D', 0)}d " \
                   f"{k_rate:.2f} {data.get('S', 0)}sp {data.get('P', 0)}p"
 
-    for k in ('point', 'successive', 'KA', 'K', 'A', 'D', 'S', 'P'):
+    for k in ('point', 'successive', 'KA', 'K', 'A', 'D', 'S', 'P', 'fest_power'):
         if k in data:
             del data[k]
 
