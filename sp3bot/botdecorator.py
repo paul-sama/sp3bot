@@ -55,10 +55,10 @@ def check_session_handler(func):
             user = get_or_set_user(user_id=user_id)
             if not user.session_token:
                 msg = f'Hello {user.first_name or full_name}! please /login'
-                logger.info(msg)
                 logger.debug(update.message)
                 if getattr(getattr(update.message, "chat", ""), "type", "") == 'private':
                     logger.debug(f'private chat')
+                    logger.info(msg)
                     await ctx.bot.send_message(chat_id=user_id, text=msg)
                 return
 
