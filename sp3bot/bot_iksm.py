@@ -207,9 +207,13 @@ def post_battle_to_stat_ink_s3si_ts(**kwargs):
 		with open(path_config_file, 'w') as f:
 			f.write(json.dumps(CONFIG_DATA, indent=2, sort_keys=False, separators=(',', ': ')))
 	else:
-		cmd = f"""sed -i "s/userLang[^,]*,/userLang\": \"{user_lang}\",/g" {path_config_file}"""
-		logger.bind(cron=True).debug(f'cli: {cmd}')
-		os.system(cmd)
+		for cmd in (
+			f"""sed -i "s/userLang[^,]*,/userLang\": \"{user_lang}\",/g" {path_config_file}""",
+			f"""sed -i "s/sessionToken[^,]*,/sessionToken\": \"{session_token}\",/g" {path_config_file}""",
+			f"""sed -i "s/statInkApiKey[^,]*,/statInkApiKey\": \"{api_key}\",/g" {path_config_file}""",
+		):
+			logger.bind(cron=True).debug(f'cli: {cmd}')
+			os.system(cmd)
 
 	# edit agent
 	cmd_list = [
