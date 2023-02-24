@@ -172,6 +172,8 @@ def post_battle_to_stat_ink_s3si_ts(**kwargs):
 	session_token = kwargs.get('session_token')
 	api_key = kwargs.get('api_key')
 	user_lang = kwargs.get('acc_loc') or 'zh-CN'
+	if not user_lang or user_lang == 'None':
+		user_lang = 'zh-CN'
 	logger.bind(cron=True).debug(f'post_battle_to_stat_ink: {user_id}')
 	logger.bind(cron=True).debug(f'session_token: {session_token}')
 	logger.bind(cron=True).debug(f'api_key: {api_key}')
