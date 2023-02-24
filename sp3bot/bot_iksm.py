@@ -283,6 +283,7 @@ def exported_to_stat_ink(user_id, session_token, api_key, user_lang):
 	logger.bind(cron=True).debug(f'exported_to_stat_ink: {user_id}')
 	logger.bind(cron=True).debug(f'session_token: {session_token}')
 	logger.bind(cron=True).debug(f'api_key: {api_key}')
+	user_lang = user_lang or 'zh-CN'
 
 	s3sits_folder = f'{pth}/s3s_user/s3sits_git'
 	os.chdir(s3sits_folder)
@@ -299,9 +300,13 @@ def exported_to_stat_ink(user_id, session_token, api_key, user_lang):
 		with open(path_config_file, 'w') as f:
 			f.write(json.dumps(config_data, indent=2, sort_keys=False, separators=(',', ': ')))
 	else:
-		cmd = f"""sed -i "s/userLang[^,]*,/userLang\": \"{user_lang}\",/g" {path_config_file}"""
-		logger.bind(cron=True).debug(f'cli: {cmd}')
-		os.system(cmd)
+		for cmd in (
+			f"""sed -i "s/userLang[^,]*,/userLang\": \"{user_lang}\",/g" {path_config_file}""",
+			f"""sed -i "s/sessionToken[^,]*,/sessionToken\": \"{session_token}\",/g" {path_config_file}""",
+			f"""sed -i "s/statInkApiKey[^,]*,/statInkApiKey\": \"{api_key}\",/g" {path_config_file}""",
+		):
+			logger.bind(cron=True).debug(f'cli: {cmd}')
+			os.system(cmd)
 
 	cmd = f'/home/anyeccc/.deno/bin/deno run -Ar ./s3si.ts -n -p {path_config_file}'
 	logger.bind(cron=True).debug(cmd)
