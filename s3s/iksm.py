@@ -27,7 +27,6 @@ config_path = os.path.join(app_path, "config.txt")
 def get_nsoapp_version():
 	'''Fetches the current Nintendo Switch Online app version from the Apple App Store.'''
 
-	return '2.4.0'
 	try:
 		page = requests.get("https://apps.apple.com/us/app/nintendo-switch-online/id1234806557")
 		soup = BeautifulSoup(page.text, 'html.parser')
