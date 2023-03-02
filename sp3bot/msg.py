@@ -128,8 +128,8 @@ def get_x_power(**kwargs):
         hg = res['data']['xBattleHistories']['historyGroups']['nodes'][0]
         x_info = hg['xMatchMeasurement']
         if x_info['state'] == 'COMPLETED':
-            last_x_power = battle_detail['xMatch'].get('lastXPower') # 2076.430111782853
-            cur_x_power = x_info['xPowerAfter']
+            last_x_power = battle_detail['xMatch'].get('lastXPower') or 0
+            cur_x_power = x_info.get('xPowerAfter') or 0
             xp = cur_x_power - last_x_power
             power = f'{xp:.2f} ({cur_x_power:.2f})'
             if xp > 0:
