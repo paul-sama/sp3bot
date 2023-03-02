@@ -509,7 +509,18 @@ async def push_latest_battle(context: ContextTypes.DEFAULT_TYPE):
     get_or_set_user(user_id=user_id, user_info=json.dumps(db_user_info), push_cnt=0)
     splt = Splatoon(user_id, user.session_token)
     msg = get_last_msg(splt, battle_id, _info, is_battle, battle_show_type=db_user_info.get('battle_show_type'), **data)
-    await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
+    r = await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
+
+    if user.id != chat_id:
+        logger.debug(f'group chat')
+        last_msg_id = data.get('last_group_msg_id')
+        if last_msg_id:
+            logger.debug(f'delete msg {last_msg_id}')
+            try:
+                await context.bot.delete_message(chat_id, last_msg_id)
+            except Exception as ex:
+                logger.warning(f'delete msg: {ex}')
+        data['last_group_msg_id'] = r.message_id
 
 
 @check_session_handler
