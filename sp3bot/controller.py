@@ -18,7 +18,7 @@ from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION, update_s3si_ts, exported_to_stat_ink
 from .msg import (
     MSG_HELP, get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_weapon_record, get_stage_record,
-    get_my_schedule, get_fest_record, get_friends, get_x_top
+    get_my_schedule, get_fest_record, get_friends, get_x_top, get_ns_friends
 )
 from .media import get_stage_img, get_coop_img, get_seed_file
 from configs import DEVELOPER_CHAT_ID
@@ -427,6 +427,15 @@ async def friends(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_or_set_user(user_id=update.effective_user.id)
     splt = Splatoon(update.effective_user.id, user.session_token)
     msg = get_friends(splt, lang=user.acc_loc)
+    logger.debug(msg)
+    await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
+
+
+@check_session_handler
+async def ns_friends(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = get_or_set_user(user_id=update.effective_user.id)
+    splt = Splatoon(update.effective_user.id, user.session_token)
+    msg = get_ns_friends(splt)
     logger.debug(msg)
     await send_bot_msg(context, chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
 

@@ -145,3 +145,111 @@ class Splatoon:
         data = utils.gen_graphql_body('2fd21f270d381ecf894eb975c5f6a716')
         res = self._request(data, skip_check_token)
         return res
+
+    def app_do_req(self, req):
+        prep_req = self.req_session.prepare_request(req)
+        logger.debug(f">> {prep_req.method} {prep_req.url}")
+
+        res = self.req_session.send(prep_req)
+
+        import json
+        return json.loads(res.text)
+
+    def app_get_token(self):
+        headers = {
+            'Host': 'accounts.nintendo.com',
+            'Accept-Encoding': 'gzip',
+            'Content-Type': 'application/json; charset=utf-8',
+            'Accept-Language': 'en-US',
+            'Accept': 'application/json',
+            'Connection': 'Keep-Alive',
+            'User-Agent': f'OnlineLounge/{self.nso_app_version} NASDKAPI Android'
+        }
+
+        json_body = {
+            'client_id': '71b963c1b7b6d119',
+            'session_token': self.session_token,
+            'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer-session-token'
+        }
+
+        req = requests.Request('POST', 'https://accounts.nintendo.com/connect/1.0.0/api/token',
+                               headers=headers, json=json_body)
+        r = self.app_do_req(req)
+        return r
+
+    def app_get_nintendo_account_data(self, access_token):
+        rsess = requests.Session()
+        resp = rsess.get("https://api.accounts.nintendo.com/2.0.0/users/me", headers={
+            "User-Agent": "OnlineLounge/2.2.0 NASDKAPI Android",
+            "Authorization": "Bearer {}".format(access_token)
+        })
+        if resp.status_code != 200:
+            logger.info("Error obtaining account data from Nintendo, aborting... ({})".format(resp.text))
+        return resp.json()
+
+    def app_login_switch_web(self, id_token, nintendo_profile):
+        nso_f, requestId, timestamp = iksm.call_imink_api(id_token, 1, 'https://api.imink.app/f')
+
+        headers = {
+            'Host': 'api-lp1.znc.srv.nintendo.net',
+            'Accept-Language': 'en-US',
+            'User-Agent': f'com.nintendo.znca/{self.nso_app_version} (Android/7.1.2)',
+            'Accept': 'application/json',
+            'X-ProductVersion': self.nso_app_version,
+            'Content-Type': 'application/json; charset=utf-8',
+            'Connection': 'Keep-Alive',
+            'Authorization': 'Bearer',
+            'X-Platform': 'Android',
+            'Accept-Encoding': 'gzip'
+        }
+
+        jsonbody = {}
+        jsonbody['parameter'] = {}
+        jsonbody['parameter']['f'] = nso_f
+        jsonbody['parameter']['naIdToken'] = id_token
+        jsonbody['parameter']['timestamp'] = timestamp
+        jsonbody['parameter']['requestId'] = requestId
+        jsonbody['parameter']['naCountry'] = nintendo_profile['country']
+        jsonbody['parameter']['naBirthday'] = nintendo_profile['birthday']
+        jsonbody['parameter']['language'] = nintendo_profile['language']
+
+        req = requests.Request('POST', 'https://api-lp1.znc.srv.nintendo.net/v3/Account/Login',
+                               headers=headers, json=jsonbody)
+
+        r = self.app_do_req(req)
+        try:
+            web_token = r["result"]["webApiServerCredential"]["accessToken"]
+        except:
+            logger.info(r)
+            web_token = ''
+        return web_token
+
+    def app_request(self):
+        self.nso_app_version = iksm.get_nsoapp_version()
+        self.req_session = requests.Session()
+
+        r = self.app_get_token()
+        id_token = r.get('id_token')
+        access_token = r.get('access_token')
+        account_data = self.app_get_nintendo_account_data(access_token)
+        app_access_token = self.app_login_switch_web(id_token, account_data)
+        if not app_access_token:
+            return
+
+        headers = {
+            'User-Agent': f'com.nintendo.znca/{self.nso_app_version} (Android/7.1.2)',
+            'Accept-Encoding': 'gzip',
+            'Accept': 'application/json',
+            'Connection': 'Keep-Alive',
+            'Host': 'api-lp1.znc.srv.nintendo.net',
+            'X-ProductVersion': self.nso_app_version,
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': f"Bearer {app_access_token}", 'X-Platform': 'Android'
+        }
+
+        json_body = {'parameter': {}, 'requestId': str(utils.uuid.uuid4())}
+
+        req = requests.Request('POST', 'https://api-lp1.znc.srv.nintendo.net/v3/Friend/List',
+                               headers=headers, json=json_body)
+        r = self.app_do_req(req)
+        return r

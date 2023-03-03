@@ -736,3 +736,36 @@ def region_x_top(x):
 {gl['xPower']} {gl['name']} #{gl['nameId']} {gl['weapon']['name']}
 {cl['xPower']} {cl['name']} #{cl['nameId']} {cl['weapon']['name']}
 '''
+
+
+
+def get_ns_friends(splt):
+    res = splt.app_request() or {}
+    res = res.get('result')
+    if not res:
+        logger.info(res)
+        return 'No friends found!'
+
+    msg = ''
+    for f in res.get('friends') or []:
+        if (f.get('presence') or {}).get('state') != 'ONLINE' and f.get('isFavoriteFriend') is False:
+            continue
+        msg += f"{f.get('name')}\t"
+        if (f.get('presence') or {}).get('state') == 'ONLINE':
+            msg += f" {f['presence']['game'].get('name')}"
+            if f['presence']['game'].get('totalPlayTime'):
+                msg += f"({int(f['presence']['game'].get('totalPlayTime')/60)}h)"
+        else:
+            t = (f.get('presence') or {}).get('logoutAt') or 0
+            if t:
+                delt = str(dt.utcnow() - dt.utcfromtimestamp(t))
+                tt = delt
+                if tt.startswith('0'):
+                    tt = tt.split(', ')[-1]
+                tt = tt.split('.')[0][:-3].replace(':', 'h')
+                msg += f" (offline about {tt})"
+            else:
+                msg += f" ({(f.get('presence') or {}).get('state', 'offline')})"
+        msg += '\n'
+    msg = f'```\n{msg}\n```'
+    return msg
