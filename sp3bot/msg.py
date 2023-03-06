@@ -370,10 +370,12 @@ def get_coop_msg(c_point, data):
     wave_msg = ''
     d_w = {0: '∼', 1: '≈', 2: '≋'}
     win = False
+    total_deliver_cnt = 0
     for w in detail['waveResults'][:3]:
         event = (w.get('eventWave') or {}).get('name') or ''
         wave_msg += f"`W{w['waveNumber']} {w['teamDeliverCount']}/{w['deliverNorm']}({w['goldenPopCount']}) " \
                     f"{d_w[w['waterLevel']]} {event}`\n"
+        total_deliver_cnt += w['teamDeliverCount'] or 0
         if w['waveNumber'] == 3 and w['teamDeliverCount'] >= w['deliverNorm']:
             win = True
     if detail.get('bossResult'):
@@ -393,7 +395,7 @@ def get_coop_msg(c_point, data):
     king_str = f'{king_smell}/5' if king_smell else ''
     msg = f"""
 `{detail['afterGrade']['name']} {detail['afterGradePoint']} {detail['dangerRate']:.0%} {'🎉 ' if win else ''}+{detail['jobPoint']}({c_point}p) {king_str}`
-{wave_msg}
+{wave_msg}          `{total_deliver_cnt}`
 {coop_row(my)}
 """
     for p in detail['memberResults']:
