@@ -4,7 +4,7 @@ from .controller import (
     start, help_msg, schedule, full_schedule, coop_schedule, mall, unknown, unknown_text, set_token, login, last,
     start_push, stop_push, set_api_key, show_db_info, clear_db_info, crontab_job, me, check_push_job,
     set_lang, lang_button, weapon_record, stage_record, fest_record, my_schedule, set_battle_info, get_seed,
-    error_handler, friends, x_top, ns_friends
+    error_handler, friends, x_top, ns_friends, check_favorite_friends, stop_cff
 )
 from configs import TELEGRAM_BOT_TOKEN
 TMT = 60
@@ -30,6 +30,8 @@ def main():
     application.add_handler(CommandHandler('me', me))
     application.add_handler(CommandHandler('friends', friends))
     application.add_handler(CommandHandler('ns_friends', ns_friends))
+    application.add_handler(CommandHandler('check_favorite_friends', check_favorite_friends))
+    application.add_handler(CommandHandler('check_favorite_friends_stop', stop_cff))
     application.add_handler(CommandHandler('x_top', x_top))
     application.add_handler(CommandHandler('weapon_record', weapon_record))
     application.add_handler(CommandHandler('stage_record', stage_record))

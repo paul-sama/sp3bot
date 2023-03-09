@@ -29,7 +29,9 @@ DICT_RANK_POINT = {
 MSG_HELP = """
 /login - login
 /me - show your info
-/friends - show online friends
+/friends - show splatoon3 online friends
+/ns_friends - show online friends
+/check_favorite_friends - check_favorite_friends
 /last - show the last battle or coop
 /start_push - start push mode
 /my_schedule - my schedule
@@ -771,3 +773,23 @@ def get_ns_friends(splt):
         msg += '\n'
     msg = f'```\n{msg}\n```'
     return msg
+
+
+def get_fav_friends(splt):
+    res = splt.app_request() or {}
+    res = res.get('result')
+    if not res:
+        return
+
+    f_lst = []
+    for f in res.get('friends') or []:
+        if f.get('isFavoriteFriend') is False:
+            continue
+
+        name = f.get('name')
+        state = (f.get('presence') or {}).get('state')
+        if state == 'ONLINE':
+            state = f['presence']['game'].get('name')
+        f_lst.append((name, state))
+
+    return f_lst

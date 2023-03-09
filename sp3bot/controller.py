@@ -18,7 +18,7 @@ from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION, update_s3si_ts, exported_to_stat_ink
 from .msg import (
     MSG_HELP, get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_weapon_record, get_stage_record,
-    get_my_schedule, get_fest_record, get_friends, get_x_top, get_ns_friends
+    get_my_schedule, get_fest_record, get_friends, get_x_top, get_ns_friends, get_fav_friends
 )
 from .media import get_stage_img, get_coop_img, get_seed_file
 from configs import DEVELOPER_CHAT_ID
@@ -705,3 +705,84 @@ async def thread_function(pth_sp3bot, user_id):
             db_user_info = json.loads(u.user_info)
         db_user_info['url_stat_ink'] = url.replace('/spl3', '').replace('/salmon3', '')
         get_or_set_user(user_id=u_id, user_info=json.dumps(db_user_info))
+
+
+@check_session_handler
+async def check_favorite_friends(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    user_id = update.effective_user.id
+    init_cff_cnt = 60  # 1 hour, interval 60s
+
+    cff_cnt = context.user_data.get('cff_cnt')
+    if cff_cnt:
+        # if /check_favorite_friends again, set push_cnt
+        context.user_data['cff_cnt'] = init_cff_cnt
+        await send_bot_msg(context, chat_id=chat_id, text='You have already started check. /check_favorite_friends_stop to stop')
+        return
+
+    context.user_data['cff_cnt'] = init_cff_cnt
+    context.job_queue.run_repeating(
+        push_favorite_friends, interval=INTERVAL * 6,
+        name=f'{user_id}_cff', chat_id=chat_id,
+        data=dict(cff_cnt=init_cff_cnt),
+        job_kwargs=dict(misfire_grace_time=9, coalesce=False, max_instances=3))
+    msg = f'Start push! check favorite friends state. /check_favorite_friends_stop to stop'
+    await send_bot_msg(context, chat_id=chat_id, text=msg)
+
+
+@check_session_handler
+async def stop_cff(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    chat_id = update.effective_chat.id
+    get_or_set_user(user_id=user_id, push=False)
+    msg = f'Stop check!'
+    job_name = f'{user_id}_cff'
+
+    current_jobs = context.job_queue.get_jobs_by_name(job_name)
+    if not current_jobs:
+        return
+
+    for job in current_jobs:
+        logger.info(f'job: {job.name}, {user_id}')
+        if job.name == job_name:
+            job.schedule_removal()
+            logger.info(f'job: {job.name}, {user_id} removed')
+    await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
+
+
+async def push_favorite_friends(context: ContextTypes.DEFAULT_TYPE):
+    logger.debug(f'push_favorite_friends: {context.job.name}')
+    chat_id = context.job.chat_id
+    user_id = int(context.job.name.split('_')[0])
+
+    data = context.job.data or {}
+    if not data.get('cff_cnt'):
+        context.job.schedule_removal()
+        msg = 'Check 60 minutes, stopped.'
+        await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
+        return
+
+    logger.debug(f'data: {data}')
+    data['cff_cnt'] -= 1
+
+    user = get_or_set_user(user_id=user_id)
+    f_lst = get_fav_friends(Splatoon(user_id, user.session_token))
+    if not f_lst:
+        context.job.schedule_removal()
+        msg = 'No favorite friends, stopped.'
+        await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
+        return
+
+    old_f_lst = data.get('f_lst')
+    data['f_lst'] = f_lst
+    msg = ''
+    if old_f_lst and f_lst and old_f_lst != f_lst:
+        dict_o = dict((i[0], i[1]) for i in old_f_lst)
+        dict_n = dict((i[0], i[1]) for i in f_lst)
+        for k, v in dict_n.items():
+            if k and k.strip() and v != dict_o.get(k):
+                msg += f'`{k}: {dict_o[k]} -> {v}`\n'
+
+    if msg:
+        logger.debug(msg)
+        await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
