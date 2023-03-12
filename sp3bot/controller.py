@@ -717,16 +717,18 @@ async def check_favorite_friends(update: Update, context: ContextTypes.DEFAULT_T
     if cff_cnt:
         # if /check_favorite_friends again, set push_cnt
         context.user_data['cff_cnt'] = init_cff_cnt
-        await send_bot_msg(context, chat_id=chat_id, text='You have already started check. /check_favorite_friends_stop to stop')
+        text = 'You have already started check. /check_favorite_friends_stop to stop'
+        logger.info(text)
+        await send_bot_msg(context, chat_id=chat_id, text=text)
         return
 
     context.user_data['cff_cnt'] = init_cff_cnt
     context.job_queue.run_repeating(
         push_favorite_friends, interval=INTERVAL * 6,
         name=f'{user_id}_cff', chat_id=chat_id,
-        data=dict(cff_cnt=init_cff_cnt),
-        job_kwargs=dict(misfire_grace_time=9, coalesce=False, max_instances=3))
+        data=dict(cff_cnt=init_cff_cnt))
     msg = f'Start push! check favorite friends state. /check_favorite_friends_stop to stop'
+    logger.info(msg)
     await send_bot_msg(context, chat_id=chat_id, text=msg)
 
 
@@ -734,7 +736,6 @@ async def check_favorite_friends(update: Update, context: ContextTypes.DEFAULT_T
 async def stop_cff(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
-    get_or_set_user(user_id=user_id, push=False)
     msg = f'Stop check!'
     job_name = f'{user_id}_cff'
 
@@ -759,6 +760,7 @@ async def push_favorite_friends(context: ContextTypes.DEFAULT_TYPE):
     if not data.get('cff_cnt'):
         context.job.schedule_removal()
         msg = 'Check 60 minutes, stopped.'
+        logger.info(msg)
         await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
         return
 
