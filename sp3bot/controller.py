@@ -716,6 +716,7 @@ async def check_favorite_friends(update: Update, context: ContextTypes.DEFAULT_T
     cff_cnt = context.user_data.get('cff_cnt')
     if cff_cnt:
         # if /check_favorite_friends again, set push_cnt
+        logger.info(f'cff_cnt: {cff_cnt}')
         context.user_data['cff_cnt'] = init_cff_cnt
         text = 'You have already started check. /check_favorite_friends_stop to stop'
         logger.info(text)
@@ -739,6 +740,7 @@ async def stop_cff(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = f'Stop check!'
     job_name = f'{user_id}_cff'
 
+    context.user_data['cff_cnt'] = 0
     current_jobs = context.job_queue.get_jobs_by_name(job_name)
     if not current_jobs:
         return
