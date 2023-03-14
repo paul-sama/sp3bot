@@ -695,7 +695,7 @@ async def thread_function(pth_sp3bot, user_id):
             url += '/salmon3'
         msg += f' to\n{url}'
 
-        logger.bind(cron=True).info(f'{u.id}, {u.username}, {msg}')
+        logger.bind(cron=True).debug(f'{u.id}, {u.username}, {msg}')
         file_msg_path = os.path.join(pth_sp3bot, 's3s_user', f'msg_{u.id}.txt')
         with open(file_msg_path, 'w') as f:
             f.write(msg)
