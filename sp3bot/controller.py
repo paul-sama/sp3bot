@@ -463,7 +463,7 @@ async def start_push(update: Update, context: ContextTypes.DEFAULT_TYPE):
     current_statics = defaultdict(int)
     context.user_data['current_statics'] = current_statics
     context.job_queue.run_repeating(
-        push_latest_battle, interval=INTERVAL,
+        push_latest_battle, interval=INTERVAL, first=1,
         name=str(user_id), chat_id=chat_id,
         data=dict(current_statics=current_statics),
         job_kwargs=dict(misfire_grace_time=9, coalesce=False, max_instances=3))
@@ -721,11 +721,19 @@ async def check_favorite_friends(update: Update, context: ContextTypes.DEFAULT_T
         text = 'You have already started check. /check_favorite_friends_stop to stop'
         logger.info(text)
         await send_bot_msg(context, chat_id=chat_id, text=text)
-        return
+
+        job_name = f'{user_id}_cff'
+        current_jobs = context.job_queue.get_jobs_by_name(job_name)
+        for job in current_jobs or []:
+            logger.info(f'job: {job.name}, {user_id}')
+            if job.name == job_name:
+                job.schedule_removal()
+                logger.info(f'job: {job.name}, {user_id} removed')
+
 
     context.user_data['cff_cnt'] = init_cff_cnt
     context.job_queue.run_repeating(
-        push_favorite_friends, interval=INTERVAL * 6,
+        push_favorite_friends, interval=INTERVAL * 6, first=1,
         name=f'{user_id}_cff', chat_id=chat_id,
         data=dict(cff_cnt=init_cff_cnt))
     msg = f'Start push! check favorite friends state. /check_favorite_friends_stop to stop'
