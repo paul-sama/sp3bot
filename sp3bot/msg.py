@@ -744,7 +744,7 @@ def region_x_top(x):
 
 
 def get_ns_friends(splt):
-    res = splt.app_request() or {}
+    res = splt.app_ns_friend_list() or {}
     res = res.get('result')
     if not res:
         logger.info(res)
@@ -776,7 +776,7 @@ def get_ns_friends(splt):
 
 
 def get_fav_friends(splt):
-    res = splt.app_request() or {}
+    res = splt.app_ns_friend_list() or {}
     res = res.get('result')
     if not res:
         return

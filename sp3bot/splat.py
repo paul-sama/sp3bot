@@ -147,13 +147,12 @@ class Splatoon:
         return res
 
     def app_do_req(self, req):
+        t = time.time()
         prep_req = self.req_session.prepare_request(req)
-        logger.debug(f">> {prep_req.method} {prep_req.url}")
-
         res = self.req_session.send(prep_req)
 
-        import json
-        return json.loads(res.text)
+        logger.debug(f">> {time.time() - t:.3f}s {prep_req.method} {prep_req.url}")
+        return res.json()
 
     def app_get_token(self):
         headers = {
@@ -178,14 +177,12 @@ class Splatoon:
         return r
 
     def app_get_nintendo_account_data(self, access_token):
-        rsess = requests.Session()
-        resp = rsess.get("https://api.accounts.nintendo.com/2.0.0/users/me", headers={
+        req = requests.Request('GET', 'https://api.accounts.nintendo.com/2.0.0/users/me', headers={
             "User-Agent": "OnlineLounge/2.2.0 NASDKAPI Android",
             "Authorization": "Bearer {}".format(access_token)
         })
-        if resp.status_code != 200:
-            logger.info("Error obtaining account data from Nintendo, aborting... ({})".format(resp.text))
-        return resp.json()
+        r = self.app_do_req(req)
+        return r
 
     def app_login_switch_web(self, id_token, nintendo_profile):
         nso_f, requestId, timestamp = iksm.call_imink_api(id_token, 1, 'https://api.imink.app/f')
@@ -224,7 +221,7 @@ class Splatoon:
             web_token = ''
         return web_token
 
-    def app_request(self):
+    def app_ns_friend_list(self):
         self.nso_app_version = iksm.get_nsoapp_version()
         self.req_session = requests.Session()
 
