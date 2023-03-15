@@ -601,6 +601,31 @@ def get_fest_record(splt, lang='zh-CN'):
     return msg
 
 
+def get_run_record(splt, lang='zh-CN'):
+    res = splt._request(utils.gen_graphql_body('b2f05c682ed2aeb669a86a3265ceb713'), skip_check_token=True)
+    if not res:
+        return '`Network error, try again`'
+
+    dict_trophy = {'GOLD': '🏅', 'SILVER': '🥈', 'BRONZE': '🥉'}
+
+    str_list = []
+    for r in res['data']['coopRecord']['bigRunRecord']['records']['edges']:
+        n = r['node']
+        str_ = f'''{n['startTime'][:10].replace('-', '/')}-{n['endTime'][8:10]}
+{n['coopStage']['name']}
+{n['highestJobScore']}{dict_trophy.get(n['trophy']) or ''} {n['highestGrade']['name']}{n['highestGradePoint']}
+
+'''
+        str_list.append(str_)
+
+    msg = f'''
+```
+{''.join(str_list)}
+```
+     '''
+    return msg
+
+
 def get_my_schedule(splt):
     data = utils.gen_graphql_body('730cd98e84f1030d3e9ac86b6f1aae13')
     res = splt._request(data)

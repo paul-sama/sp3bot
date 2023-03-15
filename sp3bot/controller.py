@@ -18,7 +18,7 @@ from .splat import Splatoon
 from .bot_iksm import log_in, login_2, A_VERSION, update_s3si_ts, exported_to_stat_ink
 from .msg import (
     MSG_HELP, get_battle_msg, INTERVAL, get_summary, get_coop_msg, get_statics, get_weapon_record, get_stage_record,
-    get_my_schedule, get_fest_record, get_friends, get_x_top, get_ns_friends, get_fav_friends
+    get_my_schedule, get_fest_record, get_friends, get_x_top, get_ns_friends, get_fav_friends, get_run_record
 )
 from .media import get_stage_img, get_coop_img, get_seed_file
 from configs import DEVELOPER_CHAT_ID
@@ -243,6 +243,9 @@ async def lang_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         elif btn_text == '/fes_record':
             msg = get_fest_record(splt, lang=user.acc_loc)
             logger.debug(msg)
+        elif btn_text == '/run_record':
+            msg = get_run_record(splt, lang=user.acc_loc)
+            logger.debug(msg)
         if msg:
             await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
 
@@ -379,7 +382,8 @@ async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
     buttons = [
         InlineKeyboardButton('🔫', callback_data=f'/weapon_record'),
         InlineKeyboardButton('🗺', callback_data=f'/stage_record'),
-        InlineKeyboardButton('️🎊', callback_data=f'/fes_record')
+        InlineKeyboardButton('️🎊', callback_data=f'/fes_record'),
+        InlineKeyboardButton('️🐟', callback_data=f'/run_record')
     ]
 
     if user.api_key and getattr(getattr(update.message, "chat", ""), "type", "") == 'private':
