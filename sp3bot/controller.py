@@ -735,7 +735,8 @@ async def check_favorite_friends(update: Update, context: ContextTypes.DEFAULT_T
     context.job_queue.run_repeating(
         push_favorite_friends, interval=INTERVAL * 6, first=1,
         name=f'{user_id}_cff', chat_id=chat_id,
-        data=dict(cff_cnt=init_cff_cnt))
+        data=dict(cff_cnt=init_cff_cnt),
+        job_kwargs=dict(misfire_grace_time=9, coalesce=False, max_instances=3))
     msg = f'Start push! check favorite friends state. /check_favorite_friends_stop to stop'
     logger.info(msg)
     await send_bot_msg(context, chat_id=chat_id, text=msg)
