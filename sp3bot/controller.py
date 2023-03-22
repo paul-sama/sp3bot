@@ -715,27 +715,17 @@ async def thread_function(pth_sp3bot, user_id):
 async def check_favorite_friends(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
+
+    # remove old job first
+    job_name = f'{user_id}_cff'
+    current_jobs = context.job_queue.get_jobs_by_name(job_name)
+    for job in current_jobs or []:
+        logger.info(f'job: {job.name}, {user_id}')
+        if job.name == job_name:
+            job.schedule_removal()
+            logger.info(f'job: {job.name}, {user_id} removed')
+
     init_cff_cnt = 60  # 1 hour, interval 60s
-
-    cff_cnt = context.user_data.get('cff_cnt')
-    if cff_cnt:
-        # if /check_favorite_friends again, set push_cnt
-        logger.info(f'cff_cnt: {cff_cnt}')
-        context.user_data['cff_cnt'] = init_cff_cnt
-        text = 'You have already started check. /check_favorite_friends_stop to stop'
-        logger.info(text)
-        await send_bot_msg(context, chat_id=chat_id, text=text)
-
-        job_name = f'{user_id}_cff'
-        current_jobs = context.job_queue.get_jobs_by_name(job_name)
-        for job in current_jobs or []:
-            logger.info(f'job: {job.name}, {user_id}')
-            if job.name == job_name:
-                job.schedule_removal()
-                logger.info(f'job: {job.name}, {user_id} removed')
-
-
-    context.user_data['cff_cnt'] = init_cff_cnt
     context.job_queue.run_repeating(
         push_favorite_friends, interval=INTERVAL * 6, first=1,
         name=f'{user_id}_cff', chat_id=chat_id,
