@@ -585,13 +585,16 @@ def get_fest_record(splt, lang='zh-CN'):
                     except Exception as e:
                         logger.error(e)
                     str_detail += f'{str_top}'
-        str_stage = f'''{s['startTime'][:10].replace('-', '/')}-{s['endTime'][8:10]} {(s.get('lang') or '')[:2]}
+        try:
+            str_stage = f'''{s['startTime'][:10].replace('-', '/')}-{s['endTime'][8:10]} {(s.get('lang') or '')[:2]}
 {s['title']}({s['myTeam']['teamName']})
 {teams}
 {str_detail}
 
 '''
-        str_list.append(str_stage)
+            str_list.append(str_stage)
+        except:
+            continue
 
     msg = f'''
 ```
