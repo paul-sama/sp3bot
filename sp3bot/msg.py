@@ -634,6 +634,8 @@ def get_my_schedule(splt):
     res = splt._request(data)
     if not res:
         return 'No schedule found!'
+    if res['data'].get('currentFest'):
+        return 'Fest schedule found!'
 
     data = utils.gen_graphql_body('f08a932d533845dde86e674e03bbb7d3')
     stage_record = splt._request(data, skip_check_token=True)
