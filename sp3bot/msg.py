@@ -720,6 +720,12 @@ def get_friends(splt, lang='zh-CN'):
                     _state += '3'
                 else:
                     _state += 'C'
+
+        elif _state == 'COOP_MODE_FIGHTING':
+            _state = f'COOP_MODE'
+            if f.get('coopRule') != 'REGULAR':
+                _state += f" ({f.get('coopRule')})"
+
         _dict[_state] += 1
         n = f['playerName'] or f.get('nickname')
         if f['playerName'] and f['playerName'] != f['nickname']:
