@@ -366,14 +366,19 @@ def coop_row(p):
            f"{p['deliverCount']:>4} {p['rescueCount']}r {name}`"
 
 
-def get_coop_msg(c_point, data):
+def get_coop_msg(coop_info, data):
+    c_point = coop_info.get('coop_point')
+    c_eggs = coop_info.get('coop_eggs')
     detail = data['data']['coopHistoryDetail']
     my = detail['myResult']
     wave_msg = ''
     d_w = {0: '∼', 1: '≈', 2: '≋'}
     win = False
     total_deliver_cnt = 0
-    for w in detail['waveResults'][:3]:
+    wave_cnt = 3
+    if detail.get('rule') == 'TEAM_CONTEST':
+        wave_cnt = 5
+    for w in detail['waveResults'][:wave_cnt]:
         event = (w.get('eventWave') or {}).get('name') or ''
         wave_msg += f"`W{w['waveNumber']} {w['teamDeliverCount']}/{w['deliverNorm']}({w['goldenPopCount']}) " \
                     f"{d_w[w['waterLevel']]} {event}`\n"
@@ -393,10 +398,13 @@ def get_coop_msg(c_point, data):
             s += f' 🥉{scale["bronze"]}'
         wave_msg += f"`EX {detail['bossResult']['boss']['name']} ({w['goldenPopCount']}) {r} {s}`\n"
 
+    if total_deliver_cnt and c_eggs:
+        total_deliver_cnt = f'{total_deliver_cnt} ({c_eggs})'
+
     king_smell = detail.get("smellMeter")
     king_str = f'{king_smell}/5' if king_smell else ''
     msg = f"""
-`{detail['afterGrade']['name']} {detail['afterGradePoint']} {detail['dangerRate']:.0%} {'🎉 ' if win else ''}+{detail['jobPoint']}({c_point}p) {king_str}`
+`{detail['afterGrade']['name'] if detail.get('afterGrade') else ''} {detail['afterGradePoint'] or ''} {detail['dangerRate']:.0%} {'🎉 ' if win else ''}+{detail['jobPoint']}({c_point}p) {king_str}`
 {wave_msg}          `{total_deliver_cnt}`
 {coop_row(my)}
 """

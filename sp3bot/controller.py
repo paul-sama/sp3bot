@@ -322,11 +322,14 @@ async def get_last_battle_or_coop(user_id, for_push=False):
     else:
         res = splt.get_coops()
     try:
-        c_point = res['data']['coopResult']['pointCard']['regularPoint']
+        coop_info = {
+            'coop_point': res['data']['coopResult']['pointCard']['regularPoint'],
+            'coop_eggs': res['data']['coopResult']['historyGroups']['nodes'][0]['highestResult'].get('jobScore') or 0
+        }
         coop_id = res['data']['coopResult']['historyGroups']['nodes'][0]['historyDetails']['nodes'][0]['id']
         coop_t = base64.b64decode(coop_id).decode('utf-8').split('_')[0].split(':')[-1]
     except:
-        c_point = 0
+        coop_info = {}
         coop_id = ''
         coop_t = ''
 
@@ -342,8 +345,8 @@ async def get_last_battle_or_coop(user_id, for_push=False):
         return msg
     else:
         if for_push:
-            return coop_id, c_point, False
-        msg = get_last_msg(splt, coop_id, c_point, False)
+            return coop_id, coop_info, False
+        msg = get_last_msg(splt, coop_id, coop_info, False)
         return msg
 
 
