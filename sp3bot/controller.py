@@ -790,8 +790,11 @@ async def push_favorite_friends(context: ContextTypes.DEFAULT_TYPE):
         dict_o = dict((i[0], i[1]) for i in old_f_lst)
         dict_n = dict((i[0], i[1]) for i in f_lst)
         for k, v in dict_n.items():
-            if k and k.strip() and v != dict_o.get(k):
-                msg += f'`{k}: {dict_o[k]} -> {v}`\n'
+            if v != dict_o.get(k):
+                c_status = f'{dict_o[k]} -> {v}'
+                if c_status in ('OFFLINE -> INACTIVE', 'INACTIVE -> OFFLINE'):
+                    continue
+                msg += f'`{k}: {c_status}`\n'
 
     if msg:
         logger.debug(msg)
