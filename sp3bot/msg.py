@@ -236,6 +236,21 @@ def get_battle_msg(b_info, battle_detail, **kwargs):
                 else:
                     msg += f' `{diff:.2f}`'
             msg += f'`({fest_power:.2f})`'
+
+    if 'current_statics' in kwargs:
+        current_statics = kwargs['current_statics']
+        total = current_statics.get('TOTAL') or 0
+        win = current_statics.get('WIN') or 0
+        lose = total - win
+        if total:
+            str_static = f'{win}-{lose}'
+            k = current_statics.get('K') or 0
+            a = current_statics.get('A') or 0
+            d = current_statics.get('D') or 0
+            if k or a or d:
+                str_static += f' {k}+{a}k/{d}d'
+            # 2-1 9+2k/8d
+            msg += f'\n`{str_static}`'
     # print(msg)
     return msg
 
