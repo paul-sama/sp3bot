@@ -256,6 +256,7 @@ async def lang_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 @check_user_handler
 async def set_battle_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
+    chat_id = update.effective_chat.id
     battle_show_type = context.args[0] if context.args else None
 
     if not battle_show_type:
@@ -266,7 +267,7 @@ set battle info, default show name
 /set_battle_info 3 - name (weapon)
 /set_battle_info 4 - weapon (name)
 '''
-        await send_bot_msg(context, chat_id=user_id, text=msg)
+        await send_bot_msg(context, chat_id=chat_id, text=msg)
         return
 
     user = get_or_set_user(user_id=user_id)
@@ -276,7 +277,7 @@ set battle info, default show name
     db_user_info['battle_show_type'] = str(battle_show_type)
     get_or_set_user(user_id=user_id, user_info=json.dumps(db_user_info))
     msg = await get_last_battle_or_coop(user_id)
-    await send_bot_msg(context, chat_id=user_id, text=msg, parse_mode='Markdown')
+    await send_bot_msg(context, chat_id=chat_id, text=msg, parse_mode='Markdown')
 
 
 @check_session_handler
