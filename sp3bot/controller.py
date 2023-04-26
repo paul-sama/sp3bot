@@ -266,6 +266,8 @@ set battle info, default show name
 /set_battle_info 2 - weapon
 /set_battle_info 3 - name (weapon)
 /set_battle_info 4 - weapon (name)
+/set_battle_info 5 - weapon (name) byname
+/set_battle_info 6 - weapon (name)#nameId byname
 '''
         await send_bot_msg(context, chat_id=chat_id, text=msg)
         return

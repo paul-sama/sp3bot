@@ -60,6 +60,8 @@ def get_row_text(p, battle_show_type='1'):
     ration = k / d if d else 99
     # name = p['name'].replace('`', '\\`') .replace("_", "\\_").replace("*", "\\*").replace("[", "\\[")
     name = p['name']
+    name_id = p.get('nameId')
+    by_name = p.get('byname') or ''
     weapon = (p.get('weapon') or {}).get('name') or ''
     if battle_show_type == '2':
         name = weapon
@@ -67,6 +69,10 @@ def get_row_text(p, battle_show_type='1'):
         name = f"{name} ({weapon})"
     elif battle_show_type == '4':
         name = f"{weapon} ({name})"
+    elif battle_show_type == '5':
+        name = f"{weapon} ({name}) {by_name}"
+    elif battle_show_type == '6':
+        name = f"{weapon} ({name})#{name_id} {by_name}"
     name = name.replace('`', '`\``')
     t = f"`{ak:>2}{k_str:>5}k {d:>2}d{ration:>4.1f}{re['special']:>3}sp {p['paint']:>4}p {name}`\n"
     if p.get('isMyself'):
