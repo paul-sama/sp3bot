@@ -105,7 +105,9 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_photo(chat_id=chat_id, photo=open(f_path, 'rb'))
             return
 
-    await context.bot.send_message(chat_id=chat_id, text="Sorry, I didn't understand that command. /help")
+    logger.info("Sorry, I didn't understand that command. /help")
+    logger.debug(update.message)
+    # await context.bot.send_message(chat_id=chat_id, text="Sorry, I didn't understand that command. /help")
 
 
 @check_session_handler
